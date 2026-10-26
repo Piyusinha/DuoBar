@@ -87,6 +87,23 @@ final class PopoverRenderTests: XCTestCase {
     }
 
     @MainActor
+    func testRenderWiFiPasswordAlert() throws {
+        let (alert, _) = WiFiPasswordPrompt.makeAlert(
+            ssid: "JioFiber-DgpCc",
+            errorMessage: localized("The password is incorrect."),
+            password: "secret"
+        )
+        alert.layout()
+        let content = try XCTUnwrap(alert.window.contentView)
+        alert.window.appearance = NSAppearance(named: .aqua)
+        let representation = try XCTUnwrap(content.bitmapImageRepForCachingDisplay(in: content.bounds))
+        content.cacheDisplay(in: content.bounds, to: representation)
+        let png = try XCTUnwrap(representation.representation(using: .png, properties: [:]))
+        try png.write(to: FileManager.default.temporaryDirectory.appendingPathComponent("DuoBar-WiFi-Password-Alert.png"))
+        XCTAssertEqual(alert.buttons.map(\.title), [localized("Join"), localized("Cancel")])
+    }
+
+    @MainActor
     func testRenderFinalPopover() throws {
         let store = SystemStatusStore(startServices: false)
         store.applyDebugBatteryLevel(.full)

@@ -115,3 +115,10 @@
 "Checking…" = "กำลังตรวจสอบ…";
 "Show Energy Mode and battery details" = "แสดงโหมดพลังงานและรายละเอียดแบตเตอรี่";
 "Allow changing the Energy Mode. You won't be asked again." = "อนุญาตให้เปลี่ยนโหมดพลังงาน ระบบจะไม่ถามอีก";
+/* Wi-Fi password alert */
+"The Wi-Fi network “%@” requires a password." = "เครือข่าย Wi-Fi “%@” ต้องใช้รหัสผ่าน";
+"Enter the password to join this network." = "ป้อนรหัสผ่านเพื่อเข้าร่วมเครือข่ายนี้";
+"Show password" = "แสดงรหัสผ่าน";
+"The password is incorrect." = "รหัสผ่านไม่ถูกต้อง";
+"macOS did not allow joining this network. Try again from Wi-Fi Settings." = "macOS ไม่อนุญาตให้เข้าร่วมเครือข่ายนี้ ลองอีกครั้งจากการตั้งค่า Wi-Fi";
+"The network is no longer available." = "เครือข่ายนี้ไม่พร้อมใช้งานแล้ว";

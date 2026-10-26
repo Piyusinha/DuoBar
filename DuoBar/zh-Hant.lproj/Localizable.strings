@@ -150,3 +150,10 @@
 "Checking…" = "正在檢查…";
 "Show Energy Mode and battery details" = "顯示能源模式與電池詳細資訊";
 "Allow changing the Energy Mode. You won't be asked again." = "允許更改能源模式。之後不會再詢問。";
+/* Wi-Fi password alert */
+"The Wi-Fi network “%@” requires a password." = "Wi-Fi 網路「%@」需要密碼。";
+"Enter the password to join this network." = "輸入密碼以加入此網路。";
+"Show password" = "顯示密碼";
+"The password is incorrect." = "密碼不正確。";
+"macOS did not allow joining this network. Try again from Wi-Fi Settings." = "macOS 不允許加入此網路。請在 Wi-Fi 設定中再試一次。";
+"The network is no longer available." = "該網路已無法使用。";

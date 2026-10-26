@@ -1,3 +1,4 @@
+import CoreWLAN
 import XCTest
 @testable import DuoBar
 
@@ -197,6 +198,30 @@ final class NearbyWiFiTests: XCTestCase {
 
         XCTAssertFalse(joined)
         XCTAssertEqual(controller.state, .failure(message: localized("Unable to Join")))
+    }
+
+    func testAssociationErrorsMapToUserFacingReasons() {
+        func reason(_ code: Int) -> NearbyWiFiProviderError {
+            CoreWLANNearbyWiFiProvider.associationError(for: NSError(domain: CWErrorDomain, code: code))
+        }
+        // EAPOL, challenge failure, PMK rejected, WPA handshake timeout.
+        for code in [1, -3912, -3924, -3925] {
+            XCTAssertEqual(reason(code), .incorrectPassword, "\(code)")
+        }
+        XCTAssertEqual(reason(-3930), .joinNotPermitted)
+        XCTAssertEqual(reason(-3905), .joinFailed) // general timeout
+        XCTAssertEqual(CoreWLANNearbyWiFiProvider.associationError(for: NSError(domain: "other", code: 1)), .joinFailed)
+    }
+
+    @MainActor
+    func testIncorrectPasswordIsReportedAsSuch() async {
+        let provider = TestNearbyWiFiProvider(associationError: NearbyWiFiProviderError.incorrectPassword)
+        let controller = NearbyWiFiController(provider: provider)
+
+        let joined = await controller.join(network(id: "home", security: .personal), password: "wrong")
+
+        XCTAssertFalse(joined)
+        XCTAssertEqual(controller.state, .failure(message: localized("The password is incorrect.")))
     }
 
     @MainActor

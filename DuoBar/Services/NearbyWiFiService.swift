@@ -85,10 +85,38 @@ final class CoreWLANNearbyWiFiProvider: @unchecked Sendable, NearbyWiFiProviding
                         password: security.requiresPassword ? password : nil
                     )
                     continuation.resume()
-                } catch {
+                } catch let error as NearbyWiFiProviderError {
                     continuation.resume(throwing: error)
+                } catch {
+                    continuation.resume(throwing: Self.associationError(for: error))
                 }
             }
+        }
+    }
+
+    /// CoreWLAN error codes from `CoreWLANTypes.h`. Raw values are used because
+    /// the Swift case names of `CWErr` differ between SDK releases.
+    enum CoreWLANErrorCode {
+        static let eapol = 1
+        static let challengeFailure = -3912
+        static let invalidPMK = -3924
+        static let supplicantTimeout = -3925
+        static let operationNotPermitted = -3930
+    }
+
+    /// Maps a CoreWLAN association error to the reason shown to the user.
+    static func associationError(for error: Error) -> NearbyWiFiProviderError {
+        let error = error as NSError
+        guard error.domain == CWErrorDomain else { return .joinFailed }
+        switch error.code {
+        // The access point rejected the key during the WPA handshake.
+        case CoreWLANErrorCode.eapol, CoreWLANErrorCode.challengeFailure,
+             CoreWLANErrorCode.invalidPMK, CoreWLANErrorCode.supplicantTimeout:
+            return .incorrectPassword
+        case CoreWLANErrorCode.operationNotPermitted:
+            return .joinNotPermitted
+        default:
+            return .joinFailed
         }
     }
 

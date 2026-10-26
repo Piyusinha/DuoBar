@@ -48,8 +48,6 @@ private struct NearbyWiFiPopoverView: View {
     let onOpenSettings: () -> Void
 
     @ObservedObject private var controller: NearbyWiFiController
-    @State private var passwordNetwork: NearbyWiFiNetwork?
-    @State private var password = ""
 
     init(statusStore: SystemStatusStore, onOpenSettings: @escaping () -> Void) {
         self.statusStore = statusStore
@@ -94,27 +92,6 @@ private struct NearbyWiFiPopoverView: View {
         .frame(width: 300)
         .task {
             await statusStore.scanNearbyWiFiIfNeeded()
-        }
-        .sheet(item: $passwordNetwork, onDismiss: clearPassword) { network in
-            WiFiPasswordView(
-                network: network,
-                isJoining: controller.isBusy,
-                errorMessage: joinError,
-                password: $password,
-                onCancel: {
-                    passwordNetwork = nil
-                },
-                onJoin: {
-                    let submittedPassword = password
-                    password = ""
-                    Task {
-                        let joined = await statusStore.joinNearbyWiFi(network, password: submittedPassword)
-                        if joined {
-                            passwordNetwork = nil
-                        }
-                    }
-                }
-            )
         }
     }
 
@@ -217,8 +194,7 @@ private struct NearbyWiFiPopoverView: View {
         case .open:
             Task { _ = await statusStore.joinNearbyWiFi(network, password: nil) }
         case .personal:
-            password = ""
-            passwordNetwork = network
+            askForPassword(to: network, errorMessage: nil, password: "")
         case .enterprise, .unsupported:
             onOpenSettings()
         }
@@ -228,9 +204,29 @@ private struct NearbyWiFiPopoverView: View {
         controller.state == .joining(networkID: network.id)
     }
 
-    private var joinError: String? {
-        guard case let .failure(message) = controller.state else { return nil }
-        return message
+    /// Shows the password alert, joins, and asks again with the reason and the
+    /// typed password kept when joining fails, like the system prompt.
+    private func askForPassword(to network: NearbyWiFiNetwork, errorMessage: String?, password: String) {
+        // Let the row click finish before the modal alert takes over.
+        DispatchQueue.main.async {
+            guard let entered = WiFiPasswordPrompt.ask(
+                ssid: network.ssid,
+                errorMessage: errorMessage,
+                password: password
+            ) else {
+                controller.clearTransientState()
+                return
+            }
+            guard !entered.isEmpty else {
+                askForPassword(to: network, errorMessage: nil, password: "")
+                return
+            }
+            Task {
+                let joined = await statusStore.joinNearbyWiFi(network, password: entered)
+                guard !joined, case let .failure(message) = controller.state else { return }
+                askForPassword(to: network, errorMessage: message, password: entered)
+            }
+        }
     }
 
     private var locationAccessIsRestricted: Bool {
@@ -249,61 +245,5 @@ private struct NearbyWiFiPopoverView: View {
         return network.isCurrent
             ? "\(localized("Current Network")), \(strength)"
             : strength
-    }
-
-    private func clearPassword() {
-        password = ""
-        controller.clearTransientState()
-    }
-}
-
-private struct WiFiPasswordView: View {
-    let network: NearbyWiFiNetwork
-    let isJoining: Bool
-    let errorMessage: String?
-    @Binding var password: String
-    let onCancel: () -> Void
-    let onJoin: () -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(network.ssid)
-                .font(.system(size: 14, weight: .semibold, design: .rounded))
-                .lineLimit(1)
-
-            SecureField(localized("Password"), text: $password)
-                .textFieldStyle(.roundedBorder)
-                .accessibilityLabel(localized("Password"))
-                .onSubmit {
-                    if canJoin { onJoin() }
-                }
-
-            if let errorMessage {
-                Text(errorMessage)
-                    .font(.system(size: 10.5))
-                    .foregroundStyle(.red)
-            }
-
-            HStack {
-                Button(localized("Cancel"), action: onCancel)
-                    .keyboardShortcut(.cancelAction)
-                    .disabled(isJoining)
-                Spacer()
-                Button(localized("Join"), action: onJoin)
-                    .keyboardShortcut(.defaultAction)
-                    .disabled(!canJoin)
-                if isJoining {
-                    ProgressView()
-                        .controlSize(.small)
-                        .accessibilityLabel(localized("Joining…"))
-                }
-            }
-        }
-        .padding(16)
-        .frame(width: 300)
-    }
-
-    private var canJoin: Bool {
-        !isJoining && !password.isEmpty
     }
 }

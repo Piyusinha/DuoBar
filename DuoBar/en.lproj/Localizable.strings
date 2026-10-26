@@ -150,3 +150,10 @@
 "Checking…" = "Checking…";
 "Show Energy Mode and battery details" = "Show Energy Mode and battery details";
 "Allow changing the Energy Mode. You won't be asked again." = "Allow changing the Energy Mode. You won't be asked again.";
+/* Wi-Fi password alert */
+"The Wi-Fi network “%@” requires a password." = "The Wi-Fi network “%@” requires a password.";
+"Enter the password to join this network." = "Enter the password to join this network.";
+"Show password" = "Show password";
+"The password is incorrect." = "The password is incorrect.";
+"macOS did not allow joining this network. Try again from Wi-Fi Settings." = "macOS did not allow joining this network. Try again from Wi-Fi Settings.";
+"The network is no longer available." = "The network is no longer available.";

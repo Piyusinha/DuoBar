@@ -229,7 +229,7 @@ final class NearbyWiFiController: ObservableObject {
             return true
         } catch {
             guard generation == requestGeneration else { return false }
-            state = .failure(message: localized("Unable to Join"))
+            state = .failure(message: Self.joinFailureMessage(for: error))
             await performPendingRefreshIfNeeded()
             return false
         }
@@ -253,10 +253,19 @@ final class NearbyWiFiController: ObservableObject {
             case .wifiOff: return localized("Wi-Fi is Off")
             case .interfaceUnavailable: return localized("Wi-Fi unavailable")
             case .networkUnavailable, .associationUnsupported: return localized("Open Wi-Fi Settings")
-            case .scanFailed: return localized("Unable to Scan")
+            case .scanFailed, .incorrectPassword, .joinNotPermitted, .joinFailed: return localized("Unable to Scan")
             }
         }
         return localized("Unable to Scan")
+    }
+
+    static func joinFailureMessage(for error: Error) -> String {
+        switch error as? NearbyWiFiProviderError {
+        case .incorrectPassword: return localized("The password is incorrect.")
+        case .joinNotPermitted: return localized("macOS did not allow joining this network. Try again from Wi-Fi Settings.")
+        case .networkUnavailable: return localized("The network is no longer available.")
+        default: return localized("Unable to Join")
+        }
     }
 
     private func performPendingRefreshIfNeeded() async {
@@ -272,4 +281,7 @@ enum NearbyWiFiProviderError: Error, Equatable, Sendable {
     case networkUnavailable
     case associationUnsupported
     case scanFailed
+    case incorrectPassword
+    case joinNotPermitted
+    case joinFailed
 }

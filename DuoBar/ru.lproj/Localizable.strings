@@ -150,3 +150,10 @@
 "Checking…" = "Проверка…";
 "Show Energy Mode and battery details" = "Показать режим энергопотребления и сведения об аккумуляторе";
 "Allow changing the Energy Mode. You won't be asked again." = "Разрешить изменение режима энергопотребления. Больше запрос не появится.";
+/* Wi-Fi password alert */
+"The Wi-Fi network “%@” requires a password." = "Для сети Wi-Fi «%@» требуется пароль.";
+"Enter the password to join this network." = "Введите пароль, чтобы подключиться к этой сети.";
+"Show password" = "Показать пароль";
+"The password is incorrect." = "Неверный пароль.";
+"macOS did not allow joining this network. Try again from Wi-Fi Settings." = "macOS не разрешила подключиться к этой сети. Попробуйте в настройках Wi-Fi.";
+"The network is no longer available." = "Сеть больше недоступна.";
