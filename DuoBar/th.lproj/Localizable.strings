@@ -113,5 +113,5 @@
 "Battery Settings…" = "การตั้งค่าแบตเตอรี่…";
 "Unable to change Energy Mode" = "ไม่สามารถเปลี่ยนโหมดพลังงานได้";
 "Checking…" = "กำลังตรวจสอบ…";
-"Allow changing the Energy Mode." = "อนุญาตให้เปลี่ยนโหมดพลังงาน";
 "Show Energy Mode and battery details" = "แสดงโหมดพลังงานและรายละเอียดแบตเตอรี่";
+"Allow changing the Energy Mode. You won't be asked again." = "อนุญาตให้เปลี่ยนโหมดพลังงาน ระบบจะไม่ถามอีก";

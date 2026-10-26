@@ -148,5 +148,5 @@
 "Battery Settings…" = "電池設定…";
 "Unable to change Energy Mode" = "無法更改能源模式";
 "Checking…" = "正在檢查…";
-"Allow changing the Energy Mode." = "允許更改能源模式。";
 "Show Energy Mode and battery details" = "顯示能源模式與電池詳細資訊";
+"Allow changing the Energy Mode. You won't be asked again." = "允許更改能源模式。之後不會再詢問。";

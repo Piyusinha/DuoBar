@@ -80,11 +80,51 @@ struct EnergyModeSettings: Equatable, Sendable {
 /// Reads and changes the system Energy Mode through `pmset`.
 ///
 /// Reading needs no privileges. Changing does: DuoBar first tries a
-/// non-interactive `sudo -n`, which only succeeds when the user has allowed
-/// `pmset` in sudoers, and otherwise asks macOS for an administrator
-/// password with the standard authorization prompt.
+/// non-interactive `sudo -n`. When that is not yet allowed, it asks macOS for
+/// an administrator password once, applies the change, and installs a sudoers
+/// rule that allows only the Energy Mode settings, so later changes need no
+/// prompt.
 enum EnergyModeService {
     private static let pmsetPath = "/usr/bin/pmset"
+    static let sudoersRulePath = "/etc/sudoers.d/duobar-energy-mode"
+
+    /// The sudoers rule: only `powermode` 0–2 and `lowpowermode` 0/1, on
+    /// battery or adapter, for this user. Nil for names sudoers could misread.
+    static func sudoersRule(for userName: String) -> String? {
+        let allowed = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-")
+        guard !userName.isEmpty,
+              userName.first != "-",
+              userName.unicodeScalars.allSatisfy(allowed.contains)
+        else { return nil }
+        let commands = [
+            "\(pmsetPath) -b powermode [0-2]",
+            "\(pmsetPath) -c powermode [0-2]",
+            "\(pmsetPath) -b lowpowermode [01]",
+            "\(pmsetPath) -c lowpowermode [01]",
+        ]
+        return "\(userName) ALL=(root) NOPASSWD: \(commands.joined(separator: ", "))"
+    }
+
+    /// Shell script run once with administrator privileges: installs the rule
+    /// (only if `visudo` accepts it) and applies the requested change.
+    static func privilegedScript(pmsetArguments: [String], userName: String) -> String {
+        let apply = ([pmsetPath] + pmsetArguments).joined(separator: " ")
+        guard let rule = sudoersRule(for: userName) else { return apply }
+        let install = [
+            "f=$(/usr/bin/mktemp /tmp/duobar-sudoers.XXXXXX)",
+            "/usr/bin/printf '%s\\n' '# Lets DuoBar switch Energy Mode without a password prompt.' '\(rule)' > \"$f\"",
+            "/usr/sbin/visudo -c -q -f \"$f\"",
+            "/usr/bin/install -m 0440 -o root -g wheel \"$f\" \(sudoersRulePath)",
+        ].joined(separator: " && ")
+        // The rule is a convenience: the requested change is applied either way,
+        // and its result decides success.
+        return "{ \(install); }; /bin/rm -f \"$f\"; \(apply)"
+    }
+
+    /// Escapes text for use inside an AppleScript string literal.
+    static func appleScriptLiteral(_ text: String) -> String {
+        "\"" + text.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"") + "\""
+    }
 
     static func read(onBattery: Bool) async -> EnergyModeSettings? {
         await Task.detached(priority: .userInitiated) {
@@ -103,9 +143,9 @@ enum EnergyModeService {
         }.value
         if appliedWithoutPrompt { return true }
 
-        let command = ([pmsetPath] + arguments).joined(separator: " ")
-        let prompt = localized("Allow changing the Energy Mode.")
-        let source = "do shell script \"\(command)\" with administrator privileges with prompt \"\(prompt)\""
+        let script = privilegedScript(pmsetArguments: arguments, userName: NSUserName())
+        let prompt = localized("Allow changing the Energy Mode. You won't be asked again.")
+        let source = "do shell script \(appleScriptLiteral(script)) with administrator privileges with prompt \(appleScriptLiteral(prompt))"
         var error: NSDictionary?
         NSAppleScript(source: source)?.executeAndReturnError(&error)
         return error == nil

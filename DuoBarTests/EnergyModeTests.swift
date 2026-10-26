@@ -64,6 +64,73 @@ final class EnergyModeTests: XCTestCase {
         )
     }
 
+    func testSudoersRuleAllowsOnlyEnergyModeSettings() throws {
+        let rule = try XCTUnwrap(EnergyModeService.sudoersRule(for: "piyush.sinha"))
+        XCTAssertEqual(
+            rule,
+            "piyush.sinha ALL=(root) NOPASSWD: /usr/bin/pmset -b powermode [0-2], /usr/bin/pmset -c powermode [0-2], "
+                + "/usr/bin/pmset -b lowpowermode [01], /usr/bin/pmset -c lowpowermode [01]"
+        )
+        // visudo is what the install step runs before anything is written.
+        XCTAssertEqual(try runTool("/usr/sbin/visudo", ["-c", "-q", "-f", writeTemporary(rule + "\n")]), 0)
+    }
+
+    func testSudoersRuleRejectsNamesSudoersCouldMisread() {
+        for name in ["", "two words", "a,b", "a;b", "-flag", "a\nb", "ALL=(root)"] {
+            XCTAssertNil(EnergyModeService.sudoersRule(for: name), name)
+        }
+    }
+
+    func testPrivilegedScriptInstallsRuleThenAppliesTheChange() throws {
+        let arguments = ["-c", "powermode", "1"]
+        let script = EnergyModeService.privilegedScript(pmsetArguments: arguments, userName: "piyush")
+        XCTAssertTrue(script.contains("/usr/sbin/visudo -c -q -f \"$f\""))
+        XCTAssertTrue(script.contains(EnergyModeService.sudoersRulePath))
+        XCTAssertTrue(script.hasSuffix("; /usr/bin/pmset -c powermode 1"))
+        XCTAssertEqual(try runTool("/bin/sh", ["-n", "-c", script]), 0, "script must be valid shell")
+
+        // Without a safe user name, only the change itself is applied.
+        XCTAssertEqual(
+            EnergyModeService.privilegedScript(pmsetArguments: arguments, userName: "bad name"),
+            "/usr/bin/pmset -c powermode 1"
+        )
+    }
+
+    func testPrivilegedScriptWritesARuleThatVisudoAccepts() throws {
+        // Run the real script without privileges: copy instead of installing
+        // into /etc/sudoers.d, and skip the pmset change.
+        let target = FileManager.default.temporaryDirectory.appendingPathComponent("duobar-rule-\(UUID().uuidString)").path
+        let script = EnergyModeService.privilegedScript(pmsetArguments: ["-c", "powermode", "1"], userName: "piyush")
+            .replacingOccurrences(of: "/usr/bin/install -m 0440 -o root -g wheel", with: "/bin/cp")
+            .replacingOccurrences(of: EnergyModeService.sudoersRulePath, with: target)
+            .replacingOccurrences(of: "; /usr/bin/pmset -c powermode 1", with: "; true")
+
+        XCTAssertEqual(try runTool("/bin/sh", ["-c", script]), 0)
+        let written = try String(contentsOfFile: target, encoding: .utf8)
+        XCTAssertEqual(written, "# Lets DuoBar switch Energy Mode without a password prompt.\n"
+            + EnergyModeService.sudoersRule(for: "piyush")! + "\n")
+        XCTAssertEqual(try runTool("/usr/sbin/visudo", ["-c", "-q", "-f", target]), 0)
+    }
+
+    func testAppleScriptLiteralEscapesQuotesAndBackslashes() {
+        XCTAssertEqual(EnergyModeService.appleScriptLiteral(#"say "hi" \n"#), #""say \"hi\" \\n""#)
+    }
+
+    private func writeTemporary(_ text: String) throws -> String {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("duobar-\(UUID().uuidString)")
+        try text.write(to: url, atomically: true, encoding: .utf8)
+        return url.path
+    }
+
+    private func runTool(_ path: String, _ arguments: [String]) throws -> Int32 {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: path)
+        process.arguments = arguments
+        try process.run()
+        process.waitUntilExit()
+        return process.terminationStatus
+    }
+
     func testEnergySampleUsesOnlyTheLastTopSample() {
         let output = """
         Processes: 600 total
