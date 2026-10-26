@@ -148,11 +148,13 @@ struct DuoGlyphView: View {
                         }
                         .mask {
                             DuoChargingGapMask(
-                                progress: showBatteryPercentage ? 0 : (chargingGapProgressOverride ?? chargingGapProgress),
+                                progress: ringPercentage != nil ? 0 : (chargingGapProgressOverride ?? chargingGapProgress),
                                 size: chargingBoltSize,
                                 offset: chargingBoltOffset,
                                 dilation: metrics.ringDiameter * BatteryChargingAnimationProfile.boltGapDilationRatio,
-                                numberGapVisible: showBatteryPercentage && glyphState.ringPresentation.mode != .adaptive && status.battery.percentage != nil
+                                numberGapVisible: ringPercentage != nil,
+                                numberGapWidth: ringPercentage.map(DuoRingPercentageBadge.gapWidth) ?? 0,
+                                numberGapCenterY: DuoRingPercentageBadge.centerY(metrics: metrics)
                             )
                             // The arc frame spans only the path diameter, but the centered
                             // stroke extends half a stroke width beyond it on every side.
@@ -160,7 +162,7 @@ struct DuoGlyphView: View {
                             .padding(-metrics.arcLineWidth)
                         }
 
-                        if !showBatteryPercentage {
+                        if ringPercentage == nil {
                             DuoChargingBolt(
                                 progress: chargingBoltProgressOverride ?? chargingBoltProgress,
                                 size: chargingBoltSize,
@@ -196,13 +198,9 @@ struct DuoGlyphView: View {
                 animationsEnabled: motionAllowed
             )
             
-            if showBatteryPercentage,
-               glyphState.ringPresentation.mode != .adaptive,
-               let pct = status.battery.percentage {
-                Text(verbatim: "\(pct)")
-                    .font(.system(size: 8, weight: .bold))
-                    .foregroundStyle(.primary)
-                    .offset(y: -11)
+            if let ringPercentage {
+                DuoRingPercentageBadge(content: ringPercentage)
+                    .offset(y: DuoRingPercentageBadge.centerY(metrics: metrics))
             }
         }
         .frame(width: DuoGlyphMetrics.canvasSize, height: DuoGlyphMetrics.canvasSize)
@@ -322,6 +320,19 @@ struct DuoGlyphView: View {
 
     private var ringModeTransitionAnimation: Animation? {
         motionAllowed ? .easeInOut(duration: 0.32) : nil
+    }
+
+    /// Charge shown in the ring's top gap. It stays in every ring mode, so the
+    /// battery level remains visible while the Adaptive Ring is shown. A full
+    /// battery shows no number (the ring and charging bolt already say it),
+    /// which keeps the badge to two digits.
+    private var ringPercentage: DuoRingPercentageBadge.Content? {
+        guard showBatteryPercentage,
+              status.battery.isAvailable,
+              let percentage = status.battery.percentage,
+              DuoRingPercentageBadge.showsNumber(for: percentage)
+        else { return nil }
+        return DuoRingPercentageBadge.Content(percentage: percentage, isOnPower: status.battery.isPluggedIn)
     }
 
     private var chargingBoltOffset: CGSize {
@@ -761,7 +772,8 @@ enum DuoWiFiReferenceGeometry {
     static let apexYRatio: CGFloat = 0.128157
     static let outerArcRadiusRatio: CGFloat = 0.268964
     static let middleArcRadiusRatio: CGFloat = 0.155314
-    static let strokeWidthRatio: CGFloat = 0.060540
+    // Bolder than the measured 0.060540 to match the menu bar ring weight.
+    static let strokeWidthRatio: CGFloat = 0.075
     static let arcHalfSpanDegrees: Double = 43.673
     static let coreRadiusRatio: CGFloat = 0.059620
     static let coreHalfAngleDegrees: Double = 59.232
@@ -916,7 +928,8 @@ enum DuoVolumeIndicatorGeometry {
     // Measured from Apple's iPhone Duo product photography (same fit as `DuoWiFiReferenceGeometry`).
     // The four dots sit on the ring's own centre line, below the open end of the arc. All values are
     // normalised to the outer ring diameter (D = 1) and measured from the centre of the ring.
-    static let indicatorDiameterRatio: CGFloat = 0.096502
+    // Larger than the measured 0.096502 to match the bolder ring.
+    static let indicatorDiameterRatio: CGFloat = 0.112
     static let centerRadiusRatio: CGFloat = 0.455450
     static let innerAngleDegrees: Double = 10.813
     static let outerAngleDegrees: Double = 32.273
@@ -956,7 +969,7 @@ private struct DuoChargingBolt: View {
 
     var body: some View {
         Image(systemName: "bolt.fill")
-            .font(.system(size: size, weight: .bold))
+            .font(.system(size: size, weight: .heavy))
             .symbolRenderingMode(.monochrome)
             .foregroundStyle(color)
             .offset(offset)
@@ -977,7 +990,8 @@ private struct DuoChargingGapMask: View {
     let offset: CGSize
     let dilation: CGFloat
     var numberGapVisible: Bool = false
-
+    var numberGapWidth: CGFloat = 16
+    var numberGapCenterY: CGFloat = -10.5
 
     private static let sampleCount = 16
 
@@ -1000,8 +1014,8 @@ private struct DuoChargingGapMask: View {
 
             if numberGapVisible {
                 RoundedRectangle(cornerRadius: 3)
-                    .frame(width: 16, height: 7)
-                    .offset(y: -10.5)
+                    .frame(width: numberGapWidth, height: DuoRingPercentageBadge.gapHeight)
+                    .offset(y: numberGapCenterY)
                     .blendMode(.destinationOut)
             }
         }
@@ -1010,8 +1024,57 @@ private struct DuoChargingGapMask: View {
 
     private var bolt: some View {
         Image(systemName: "bolt.fill")
-            .font(.system(size: size, weight: .bold))
+            .font(.system(size: size, weight: .heavy))
             .symbolRenderingMode(.monochrome)
             .offset(offset)
+    }
+}
+
+/// Battery charge drawn in the ring's top gap: "⚡︎100" on power, "100" on battery.
+/// Sizes are in glyph canvas units (`DuoGlyphMetrics.canvasSize`).
+struct DuoRingPercentageBadge: View {
+    struct Content: Equatable {
+        let percentage: Int
+        let isOnPower: Bool
+    }
+
+    static let gapHeight: CGFloat = 7
+    private static let fontSize: CGFloat = 7
+    private static let boltSize: CGFloat = 5.5
+    private static let boltWidth: CGFloat = 3.6
+    private static let digitWidth: CGFloat = 4.3
+    private static let gapPadding: CGFloat = 2
+
+    /// Centered on the top of the ring's stroke path, so the badge replaces
+    /// that stretch of the arc instead of overlapping it.
+    static func centerY(metrics: DuoGlyphMetrics) -> CGFloat {
+        metrics.ringYOffset - metrics.ringPathDiameter / 2
+    }
+
+    let content: Content
+
+    var body: some View {
+        HStack(spacing: 0.5) {
+            if content.isOnPower {
+                Image(systemName: "bolt.fill")
+                    .font(.system(size: Self.boltSize, weight: .heavy))
+                    .frame(width: Self.boltWidth)
+            }
+            Text(verbatim: "\(content.percentage)")
+                .font(.system(size: Self.fontSize, weight: .bold).monospacedDigit())
+                .fixedSize()
+        }
+        .foregroundStyle(.primary)
+    }
+
+    /// Only 0–99 is shown; at 100% the ring falls back to its normal charging bolt.
+    static func showsNumber(for percentage: Int) -> Bool {
+        (0..<100).contains(percentage)
+    }
+
+    /// Width of the ring cut-out that keeps the badge clear of the arc.
+    static func gapWidth(for content: Content) -> CGFloat {
+        let digits = CGFloat(String(content.percentage).count)
+        return digits * digitWidth + (content.isOnPower ? boltWidth + 0.5 : 0) + gapPadding * 2
     }
 }

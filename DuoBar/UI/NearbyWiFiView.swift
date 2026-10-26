@@ -3,6 +3,8 @@ import SwiftUI
 struct NearbyWiFiButton: View {
     let statusStore: SystemStatusStore
     let onOpenSettings: () -> Void
+    /// Control Center style: a plain menu item instead of a compact card.
+    var controlCenterStyle = false
 
     @State private var isPresented = false
 
@@ -10,20 +12,24 @@ struct NearbyWiFiButton: View {
         Button {
             isPresented = true
         } label: {
-            HStack(spacing: 8) {
-                Label(localized("Nearby Networks"), systemImage: "wifi")
-                    .font(.system(size: 10.5, weight: .medium))
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 8.5, weight: .semibold))
-                    .foregroundStyle(.tertiary)
+            if controlCenterStyle {
+                ControlCenterMenuItemLabel(title: localized("Nearby Networks"), showsDisclosure: true)
+            } else {
+                HStack(spacing: 8) {
+                    Label(localized("Nearby Networks"), systemImage: "wifi")
+                        .font(.system(size: 10.5, weight: .medium))
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 8.5, weight: .semibold))
+                        .foregroundStyle(.tertiary)
+                }
+                .contentShape(Rectangle())
+                .padding(.horizontal, 10)
+                .frame(height: 28)
+                .duoRowBackground(cornerRadius: 8)
             }
-            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .padding(.horizontal, 10)
-        .frame(height: 28)
-        .background(.primary.opacity(0.03), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
         .accessibilityHint(localized("Browse nearby Wi-Fi networks"))
         .popover(isPresented: $isPresented, arrowEdge: .trailing) {
             NearbyWiFiPopoverView(

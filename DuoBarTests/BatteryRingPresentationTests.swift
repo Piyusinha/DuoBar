@@ -93,11 +93,11 @@ final class BatteryRingPresentationTests: XCTestCase {
         XCTAssertEqual(presentation(percentage: 50, pluggedIn: true).boltPlacement, .topGap)
     }
 
-    func testAuthoritativeFullConnectedBatterySuppressesBolt() {
-        XCTAssertEqual(
-            presentation(percentage: 100, pluggedIn: true, fullyCharged: true).boltPlacement,
-            .none
-        )
+    func testAuthoritativeFullConnectedBatteryKeepsUndimmedBoltWithoutChargingColor() {
+        let full = presentation(percentage: 100, pluggedIn: true, fullyCharged: true)
+        XCTAssertEqual(full.boltPlacement, .topGap)
+        XCTAssertFalse(full.boltDimmed)
+        XCTAssertEqual(full.colorRole, .monochrome)
     }
 
     func testRingMidpointDerivesFromSharedRingGeometry() {
@@ -111,7 +111,7 @@ final class BatteryRingPresentationTests: XCTestCase {
     func testReferenceArcUsesVisualOuterDiameterAndMeasuredStrokeRatio() {
         let metrics = DuoGlyphMetrics.standard
         XCTAssertEqual(metrics.ringPathDiameter + metrics.arcLineWidth, metrics.ringDiameter, accuracy: 0.0001)
-        XCTAssertEqual(metrics.arcLineWidth / metrics.ringDiameter, 0.076378, accuracy: 0.0005)
+        XCTAssertEqual(metrics.arcLineWidth / metrics.ringDiameter, DuoGlyphMetrics.referenceArcStrokeRatio, accuracy: 0.0005)
         XCTAssertEqual(metrics.arcGap, 120.22, accuracy: 0.01)
     }
 
@@ -147,10 +147,10 @@ final class BatteryRingPresentationTests: XCTestCase {
         XCTAssertEqual(state.batteryPresentation.boltPlacement, .topGap)
     }
 
-    func testAuthoritativeFullSuppressesBoltWithoutReplacingNetwork() {
+    func testAuthoritativeFullOnPowerKeepsBoltWithoutReplacingNetwork() {
         let state = DuoGlyphState(status: status(percentage: 100, pluggedIn: true, fullyCharged: true))
         XCTAssertEqual(state.centerState, .wifi(.strong))
-        XCTAssertEqual(state.batteryPresentation.boltPlacement, .none)
+        XCTAssertEqual(state.batteryPresentation.boltPlacement, .topGap)
     }
 
     func testUnpluggingFullBatteryRestoresNormalNetworkCenter() {
@@ -170,7 +170,7 @@ final class BatteryRingPresentationTests: XCTestCase {
             presentation: .event(event)
         )
         XCTAssertEqual(state.centerState, .airPodsPro)
-        XCTAssertEqual(state.batteryPresentation.boltPlacement, .none)
+        XCTAssertEqual(state.batteryPresentation.boltPlacement, .topGap)
     }
 
     func testAdaptiveRingOverrideCannotLeakBatteryBolt() {

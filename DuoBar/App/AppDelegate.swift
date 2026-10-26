@@ -23,7 +23,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             PreferenceKeys.menuBarIconScale: MenuBarIconSize.defaultScale,
             PreferenceKeys.batteryColorCoding: false,
             PreferenceKeys.openOnHover: false,
-            PreferenceKeys.showBatteryPercentageInMenuBar: false
+            PreferenceKeys.showBatteryPercentageInMenuBar: true
         ])
         super.init()
     }
@@ -43,6 +43,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.instanceLock = instanceLock
 
         NSApp.setActivationPolicy(.accessory)
+        LaunchAtLoginService.ensureEnabledUnlessOptedOut()
         let statusStore = SystemStatusStore()
         self.statusStore = statusStore
 

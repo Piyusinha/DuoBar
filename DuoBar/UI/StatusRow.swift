@@ -48,7 +48,7 @@ struct StatusRow: View {
         }
         .padding(.horizontal, 10)
         .frame(height: 48)
-        .background(.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+        .duoRowBackground()
     }
 
     @ViewBuilder
@@ -80,7 +80,7 @@ struct StatusRow: View {
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(tint)
                 .frame(width: 28, height: 28)
-                .background(tint.opacity(0.12), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .duoIconBackground(tint.opacity(0.12))
 
             VStack(alignment: .leading, spacing: 1) {
                 Text(title)
@@ -124,5 +124,52 @@ struct StatusRow: View {
         case .disclosure: "chevron.right"
         case .menu: "chevron.up.chevron.down"
         }
+    }
+}
+
+/// Row surface. Before macOS 26 rows are filled cards; with Liquid Glass they sit
+/// directly on the popover's system glass and only highlight on hover, like
+/// Control Center. The glass itself follows the system Clear/Tinted and
+/// Reduce Transparency settings.
+private struct DuoRowBackground: ViewModifier {
+    let cornerRadius: CGFloat
+    let highlightsOnHover: Bool
+    @State private var isHovered = false
+
+    func body(content: Content) -> some View {
+        if #available(macOS 26.0, *) {
+            content
+                .background(
+                    .primary.opacity(highlightsOnHover && isHovered ? 0.08 : 0),
+                    in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                )
+                .onHover { isHovered = $0 }
+        } else {
+            content
+                .background(.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+        }
+    }
+}
+
+/// Icon tile: rounded square before macOS 26, a Control Center-style circle with Liquid Glass.
+private struct DuoIconBackground<Fill: ShapeStyle>: ViewModifier {
+    let fill: Fill
+
+    func body(content: Content) -> some View {
+        if #available(macOS 26.0, *) {
+            content.background(fill, in: Circle())
+        } else {
+            content.background(fill, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        }
+    }
+}
+
+extension View {
+    func duoRowBackground(cornerRadius: CGFloat = 11, highlightsOnHover: Bool = true) -> some View {
+        modifier(DuoRowBackground(cornerRadius: cornerRadius, highlightsOnHover: highlightsOnHover))
+    }
+
+    func duoIconBackground<Fill: ShapeStyle>(_ fill: Fill) -> some View {
+        modifier(DuoIconBackground(fill: fill))
     }
 }

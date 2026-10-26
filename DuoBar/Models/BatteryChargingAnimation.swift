@@ -25,7 +25,8 @@ enum BatteryChargingAnimationProfile {
 
     // The stable reference bolt measured 33 x 50 px against a 230 px outer ring.
     // SF Symbols' bold bolt has a measured rendered-height/font-size ratio of 1.16.
-    static let boltFontSizeRatio: CGFloat = (50 / 1.16) / 230
+    // 20% larger than the reference recording so the bolt reads at menu bar size.
+    static let boltFontSizeRatio: CGFloat = (50 / 1.16) / 230 * 1.2
     static let boltOpacity = 1.0
     // Re-measured from the 60 fps reference recording: the bolt's ink box is centred on the
     // ring line (3.5 px inside the path radius, 0.5 px left of the ring centre at 230 px).

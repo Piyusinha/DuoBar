@@ -128,3 +128,25 @@
 "Select audio input" = "Вибрати пристрій введення звуку";
 "Extra Large" = "Дуже великий";
 "Battery Percentage" = "Відсоток заряду";
+
+/* Liquid Glass popover */
+"Sound" = "Звук";
+"Output" = "Вихід";
+"Input" = "Вхід";
+"Settings…" = "Налаштування…";
+"Quit" = "Вийти";
+
+/* Battery detail */
+"Power Source: %@" = "Джерело живлення: %@";
+"Power Adapter" = "Адаптер живлення";
+"Energy Mode" = "Режим енергоспоживання";
+"Low Power" = "Енергозбереження";
+"High Power" = "Висока продуктивність";
+"Using Significant Energy" = "Значне енергоспоживання";
+"No Apps Using Significant Energy" = "Немає програм зі значним енергоспоживанням";
+"Display Brightness" = "Яскравість дисплея";
+"Battery Settings…" = "Параметри акумулятора…";
+"Unable to change Energy Mode" = "Не вдалося змінити режим енергоспоживання";
+"Checking…" = "Перевірка…";
+"Allow changing the Energy Mode." = "Дозволити зміну режиму енергоспоживання.";
+"Show Energy Mode and battery details" = "Показати режим енергоспоживання та відомості про акумулятор";

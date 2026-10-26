@@ -128,3 +128,25 @@
 "Select audio input" = "選擇音訊輸入";
 "Extra Large" = "超大";
 "Battery Percentage" = "電池百分比";
+
+/* Liquid Glass popover */
+"Sound" = "聲音";
+"Output" = "輸出";
+"Input" = "輸入";
+"Settings…" = "設定…";
+"Quit" = "結束";
+
+/* Battery detail */
+"Power Source: %@" = "電源：%@";
+"Power Adapter" = "電源轉換器";
+"Energy Mode" = "能源模式";
+"Low Power" = "低耗電";
+"High Power" = "高耗電";
+"Using Significant Energy" = "正在使用大量能源";
+"No Apps Using Significant Energy" = "沒有正在使用大量能源的App";
+"Display Brightness" = "顯示器亮度";
+"Battery Settings…" = "電池設定…";
+"Unable to change Energy Mode" = "無法更改能源模式";
+"Checking…" = "正在檢查…";
+"Allow changing the Energy Mode." = "允許更改能源模式。";
+"Show Energy Mode and battery details" = "顯示能源模式與電池詳細資訊";

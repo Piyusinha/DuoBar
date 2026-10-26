@@ -71,6 +71,13 @@ final class MenuBarController: NSObject {
         popover.delegate = self
         popover.animates = true
         popover.contentSize = NSSize(width: 304, height: 352)
+        // With Liquid Glass the panel hangs from the menu bar without an arrow,
+        // like Control Center. NSPopover has no public switch for the anchor, so
+        // the long-standing private key is used only while the class answers to it.
+        if #available(macOS 26.0, *),
+           popover.responds(to: NSSelectorFromString("setShouldHideAnchor:")) {
+            popover.setValue(true, forKey: "shouldHideAnchor")
+        }
         let hostingController = NSHostingController(
             rootView: StatusPopoverView(statusStore: statusStore) { [weak self] in
                 self?.closePopoverFromContent()

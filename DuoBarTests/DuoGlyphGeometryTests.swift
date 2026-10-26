@@ -45,7 +45,7 @@ final class DuoGlyphGeometryTests: XCTestCase {
 
     func testRingStrokeAndGapMatchTheMeasuredValues() {
         let metrics = DuoGlyphMetrics.standard
-        XCTAssertEqual(metrics.arcLineWidth / metrics.ringDiameter, 0.076378, accuracy: tolerance)
+        XCTAssertEqual(metrics.arcLineWidth / metrics.ringDiameter, DuoGlyphMetrics.referenceArcStrokeRatio, accuracy: tolerance)
         XCTAssertEqual(metrics.arcGap, 120.22, accuracy: 0.01)
         XCTAssertEqual(metrics.arcStartDegrees, 150.11, accuracy: 0.01)
         XCTAssertEqual(metrics.arcEndDegrees, 389.89, accuracy: 0.01)

@@ -60,7 +60,7 @@ final class PopoverControlsTests: XCTestCase {
     }
 
     func testSystemSettingsURLsAreWellFormed() {
-        for pane in [SystemSettingsOpener.Pane.wifi, .network, .battery, .sound, .bluetooth] {
+        for pane in [SystemSettingsOpener.Pane.wifi, .network, .battery, .sound, .bluetooth, .displays] {
             let urls = SystemSettingsOpener.urlStrings(for: pane)
             XCTAssertFalse(urls.isEmpty, "Missing URLs for \(pane)")
             for string in urls {

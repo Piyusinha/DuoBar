@@ -5,6 +5,7 @@ struct StatusPopoverView: View {
     @ObservedObject private var statusStore: SystemStatusStore
     @AppStorage(PreferenceKeys.showBatteryPercentage) private var showBatteryPercentage = true
     @AppStorage(PreferenceKeys.batteryColorCoding) private var batteryColorCoding = false
+    @State private var isBatteryDetailPresented = false
     private let onClose: () -> Void
 
     init(statusStore: SystemStatusStore, onClose: @escaping () -> Void) {
@@ -13,10 +14,156 @@ struct StatusPopoverView: View {
     }
 
     var body: some View {
+        if #available(macOS 26.0, *) {
+            controlCenterBody
+        } else {
+            cardBody
+        }
+    }
+
+    /// Liquid Glass layout (macOS 26+): Wi-Fi, Sound, and Battery sections styled
+    /// like their Control Center modules, sitting directly on the popover's system
+    /// glass so the Clear/Tinted and Reduce Transparency settings apply.
+    private var controlCenterBody: some View {
+        let audio = statusStore.status.audio
+        let batteryRow = BatteryStatusRow(battery: statusStore.status.battery, showPercentage: showBatteryPercentage)
+
+        return VStack(alignment: .leading, spacing: 1) {
+            ControlCenterSectionHeader(title: networkSectionTitle) {
+                controlCenterWiFiToggle
+            }
+            ControlCenterDeviceRow(
+                symbol: networkSymbol,
+                title: networkDetail,
+                isSelected: statusStore.status.network.isConnected,
+                showsDisclosure: true,
+                accessibilityHint: networkSettingsHint,
+                action: openNetworkSettings
+            )
+            NearbyWiFiButton(
+                statusStore: statusStore,
+                onOpenSettings: openWiFiSettings,
+                controlCenterStyle: true
+            )
+
+            ControlCenterSeparator()
+
+            ControlCenterSectionHeader(title: localized("Sound"))
+            VolumeStatusRow(
+                volume: audio.volume,
+                hasOutputDevice: audio.defaultOutput != nil,
+                playbackDeviceIdentifier: audio.defaultOutput?.uid,
+                onSetVolume: statusStore.setVolume,
+                onSetMuted: statusStore.setMuted,
+                style: .controlCenter
+            )
+
+            ControlCenterSubheader(title: localized("Output"))
+            ForEach(audio.selectableOutputs) { device in
+                ControlCenterDeviceRow(
+                    symbol: device.controlCenterSymbol,
+                    title: device.name,
+                    isSelected: device.uid == audio.defaultOutput?.uid
+                ) {
+                    _ = statusStore.setDefaultOutput(uid: device.uid)
+                }
+            }
+
+            if !audio.selectableInputs.isEmpty {
+                ControlCenterSubheader(title: localized("Input"))
+                ForEach(audio.selectableInputs) { device in
+                    ControlCenterDeviceRow(
+                        symbol: device.controlCenterInputSymbol,
+                        title: device.name,
+                        isSelected: device.uid == audio.defaultInput?.uid
+                    ) {
+                        _ = statusStore.setDefaultInput(uid: device.uid)
+                    }
+                }
+            }
+
+            ControlCenterMenuItem(title: localized("Sound Settings…"), action: openSoundSettings)
+
+            if statusStore.status.battery.isAvailable {
+                ControlCenterSeparator()
+
+                ControlCenterSectionHeader(title: localized("Battery")) {
+                    if let percentage = batteryRow.trailingValue {
+                        Text(percentage)
+                            .font(.system(size: 13))
+                            .foregroundStyle(.secondary)
+                            .monospacedDigit()
+                    }
+                }
+                ControlCenterDeviceRow(
+                    symbol: batteryRow.symbol,
+                    title: batteryRow.detail,
+                    showsDisclosure: true,
+                    accessibilityHint: localized("Show Energy Mode and battery details")
+                ) {
+                    isBatteryDetailPresented = true
+                }
+                .popover(isPresented: $isBatteryDetailPresented, arrowEdge: .trailing) {
+                    BatteryDetailView(
+                        battery: statusStore.status.battery,
+                        showPercentage: showBatteryPercentage,
+                        onOpenSettings: {
+                            isBatteryDetailPresented = false
+                            openBatterySettings()
+                        }
+                    )
+                }
+            }
+
+            #if DEBUG
+            DebugStatusSimulatorView(statusStore: statusStore)
+            #endif
+
+            ControlCenterSeparator()
+
+            settingsAction {
+                ControlCenterMenuItemLabel(title: localized("Settings…"))
+            }
+            ControlCenterMenuItem(title: localized("Quit")) {
+                NSApp.terminate(nil)
+            }
+        }
+        .padding(.horizontal, 6)
+        .padding(.vertical, 8)
+        .frame(width: 304)
+        .onAppear {
+            NSApp.activate(ignoringOtherApps: true)
+            // Warm the Battery panel so it opens with current data.
+            if statusStore.status.battery.isAvailable {
+                BatteryDetailMonitor.shared.refresh(onBattery: !statusStore.status.battery.isPluggedIn)
+            }
+        }
+    }
+
+    private var networkSectionTitle: String {
+        let network = statusStore.status.network
+        return network.transport == .wifi || network.isWiFiPoweredOn != nil
+            ? localized("Wi-Fi")
+            : localized("Network")
+    }
+
+    @ViewBuilder
+    private var controlCenterWiFiToggle: some View {
+        if let wifiPowerState = statusStore.status.network.isWiFiPoweredOn {
+            Toggle(localized("Wi-Fi power"), isOn: Binding(
+                get: { wifiPowerState },
+                set: { statusStore.setWiFiPower($0) }
+            ))
+            .labelsHidden()
+            .toggleStyle(.switch)
+            .controlSize(.small)
+            .accessibilityLabel(localized("Wi-Fi power"))
+        }
+    }
+
+    private var cardBody: some View {
         VStack(spacing: 8) {
             HStack {
-                Text("DuoBar")
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
                 Spacer()
                 DuoGlyphView(
                     status: statusStore.status,
@@ -100,7 +247,9 @@ struct StatusPopoverView: View {
             Divider()
 
             HStack(spacing: 6) {
-                settingsAction
+                settingsAction {
+                    Label(localized("Settings"), systemImage: "gearshape")
+                }
 
                 Spacer()
 
@@ -121,10 +270,10 @@ struct StatusPopoverView: View {
     }
 
     @ViewBuilder
-    private var settingsAction: some View {
+    private func settingsAction<Label: View>(@ViewBuilder label: () -> Label) -> some View {
         if #available(macOS 14.0, *) {
             SettingsLink {
-                settingsLabel
+                label()
             }
             .buttonStyle(.plain)
             .simultaneousGesture(TapGesture().onEnded {
@@ -133,14 +282,10 @@ struct StatusPopoverView: View {
             })
         } else {
             Button(action: openSettingsFromApplicationMenu) {
-                settingsLabel
+                label()
             }
             .buttonStyle(.plain)
         }
-    }
-
-    private var settingsLabel: some View {
-        Label(localized("Settings"), systemImage: "gearshape")
     }
 
     private func openSettingsFromApplicationMenu() {
@@ -308,7 +453,7 @@ struct BatteryStatusRow: View {
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(.primary)
                 .frame(width: 28, height: 28)
-                .background(.primary.opacity(0.12), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .duoIconBackground(.primary.opacity(0.12))
 
             VStack(alignment: .leading, spacing: 1) {
                 HStack(spacing: 8) {
@@ -337,7 +482,7 @@ struct BatteryStatusRow: View {
         }
         .padding(.horizontal, 10)
         .frame(height: 48)
-        .background(.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+        .duoRowBackground()
     }
 
     var trailingValue: String? {
@@ -355,6 +500,7 @@ struct BatteryStatusRow: View {
     }
 
     var symbol: String {
+        if battery.isPluggedIn { return "battery.100percent.bolt" }
         if battery.isFullyCharged { return "battery.100percent" }
         if battery.isCharging { return "battery.100percent.bolt" }
         switch battery.percentage ?? 0 {

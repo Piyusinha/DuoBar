@@ -27,7 +27,8 @@ final class DuoGlyphStateTests: XCTestCase {
         )
 
         XCTAssertFalse(state.isCharging)
-        XCTAssertEqual(state.batteryPresentation.boltPlacement, .none)
+        // On power, the bolt stays, but without charging color semantics.
+        XCTAssertEqual(state.batteryPresentation.boltPlacement, .topGap)
         XCTAssertEqual(state.batteryPresentation.colorRole, .monochrome)
     }
 

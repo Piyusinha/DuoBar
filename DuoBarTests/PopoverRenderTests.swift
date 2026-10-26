@@ -26,14 +26,33 @@ final class PopoverRenderTests: XCTestCase {
         XCTAssertNil(hidden.trailingValue)
     }
 
-    func testAuthoritativeFullBatteryUsesFullDetailAndNeverShowsChargingBoltSymbol() {
-        let row = BatteryStatusRow(
+    func testAuthoritativeFullBatteryUsesFullDetailAndShowsBoltOnlyOnPower() {
+        let onPower = BatteryStatusRow(
             battery: BatteryStatus(percentage: 100, isCharging: true, isPluggedIn: true, isFullyCharged: true, isAvailable: true),
             showPercentage: true
         )
+        XCTAssertEqual(onPower.detail, localized("Fully charged"))
+        XCTAssertEqual(onPower.symbol, "battery.100percent.bolt")
 
-        XCTAssertEqual(row.detail, localized("Fully charged"))
-        XCTAssertEqual(row.symbol, "battery.100percent")
+        let onBattery = BatteryStatusRow(
+            battery: BatteryStatus(percentage: 100, isCharging: false, isPluggedIn: false, isFullyCharged: true, isAvailable: true),
+            showPercentage: true
+        )
+        XCTAssertEqual(onBattery.symbol, "battery.100percent")
+    }
+
+    func testRingPercentageShowsAtMostTwoDigitsAndHidesAtFull() {
+        XCTAssertFalse(DuoRingPercentageBadge.showsNumber(for: 100))
+        XCTAssertTrue(DuoRingPercentageBadge.showsNumber(for: 99))
+        XCTAssertTrue(DuoRingPercentageBadge.showsNumber(for: 5))
+
+        let charging = DuoRingPercentageBadge.Content(percentage: 87, isOnPower: true)
+        let onBattery = DuoRingPercentageBadge.Content(percentage: 87, isOnPower: false)
+        let low = DuoRingPercentageBadge.Content(percentage: 7, isOnPower: false)
+        XCTAssertGreaterThan(DuoRingPercentageBadge.gapWidth(for: charging), DuoRingPercentageBadge.gapWidth(for: onBattery))
+        XCTAssertGreaterThan(DuoRingPercentageBadge.gapWidth(for: onBattery), DuoRingPercentageBadge.gapWidth(for: low))
+        // The cut-out must stay well inside the 32-unit glyph canvas.
+        XCTAssertLessThan(DuoRingPercentageBadge.gapWidth(for: charging), DuoGlyphMetrics.canvasSize * 0.6)
     }
 
     @MainActor
@@ -47,6 +66,24 @@ final class PopoverRenderTests: XCTestCase {
         .environment(\.colorScheme, .dark)
 
         try writePNG(view, named: "DuoBar-Battery-Row-96.png")
+    }
+
+    @MainActor
+    func testRenderMenuBarItemWithRingPercentage() throws {
+        for level in [DebugBatteryLevel.seventyFive, .full] {
+            let store = SystemStatusStore(startServices: false)
+            store.applyDebugBatteryLevel(level)
+            store.applyDebugPowerState(.charging)
+            store.applyDebugNetworkState(.strong)
+            store.applyDebugVolumeState(.fiftyOne)
+
+            let view = DuoStatusView(statusStore: store)
+                .padding(4)
+                .background(Color(nsColor: .windowBackgroundColor))
+                .environment(\.colorScheme, .dark)
+
+            try writePNG(view, named: "DuoBar-MenuBar-Ring-Percentage-\(level.rawValue).png")
+        }
     }
 
     @MainActor

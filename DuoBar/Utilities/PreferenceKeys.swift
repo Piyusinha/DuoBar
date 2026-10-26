@@ -7,6 +7,8 @@ enum PreferenceKeys {
     static let adaptiveRingColorCoding = "adaptiveRingColorCoding"
     static let openOnHover = "duoBar.openOnHover"
     static let showBatteryPercentageInMenuBar = "showBatteryPercentageInMenuBar"
+    static let launchAtLoginOptedOut = "duoBar.launchAtLoginOptedOut"
+    static let launchAtLoginRegisteredBuild = "duoBar.launchAtLoginRegisteredBuild"
 
     #if DEBUG
     static let simulateDesktopMac = "debug.simulateDesktopMac"

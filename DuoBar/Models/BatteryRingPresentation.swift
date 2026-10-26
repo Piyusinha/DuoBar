@@ -28,10 +28,14 @@ struct BatteryRingPresentation: Equatable, Sendable {
         }
 
         // IOPowerSources' authoritative full flag wins over a concurrent or
-        // stale charging flag. Fully charged must not retain charging bolt or
-        // green charging semantics.
+        // stale charging flag: fully charged never keeps green charging
+        // semantics. The bolt stays while the adapter is connected, so the ring
+        // still shows that the Mac is on power.
         if battery.isFullyCharged {
-            return BatteryRingPresentation(boltPlacement: .none, colorRole: .monochrome)
+            return BatteryRingPresentation(
+                boltPlacement: battery.isPluggedIn ? .topGap : .none,
+                colorRole: .monochrome
+            )
         }
 
         let boltPlacement: BatteryBoltPlacement = battery.isPluggedIn ? .topGap : .none

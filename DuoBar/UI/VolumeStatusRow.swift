@@ -1,19 +1,66 @@
 import SwiftUI
 
 struct VolumeStatusRow: View {
+    enum Style {
+        case card
+        /// Control Center layout: speaker, full-width slider, loud speaker.
+        case controlCenter
+    }
+
     let volume: OutputVolumeStatus
     let hasOutputDevice: Bool
     let playbackDeviceIdentifier: String?
     let onSetVolume: (Double) -> Bool
     let onSetMuted: (Bool) -> Bool
+    var style: Style = .card
 
     @State private var feedbackInteraction = VolumeFeedbackInteraction()
 
     var body: some View {
+        switch style {
+        case .card: cardBody
+        case .controlCenter: controlCenterBody
+        }
+    }
+
+    private var controlCenterBody: some View {
+        HStack(spacing: 8) {
+            muteControl
+                .frame(width: 22, height: 22)
+
+            if volume.isSettable, let level = volume.level {
+                Slider(
+                    value: Binding(
+                        get: { level },
+                        set: handleUserVolumeChange
+                    ),
+                    in: 0...1,
+                    onEditingChanged: handleSliderEditingChanged
+                )
+                .accessibilityLabel(localized("Output volume"))
+                .accessibilityValue(stateText)
+
+                Image(systemName: "speaker.wave.3.fill")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+            } else {
+                Text(hasOutputDevice ? localized("Controlled by device") : localized("Volume unavailable"))
+                    .font(.system(size: 13))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .padding(.horizontal, ControlCenterMetrics.horizontalInset)
+        .frame(minHeight: 30)
+    }
+
+    private var cardBody: some View {
         HStack(spacing: 11) {
             muteControl
                 .frame(width: 28, height: 28)
-                .background(.primary.opacity(0.08), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .duoIconBackground(.primary.opacity(0.08))
 
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
@@ -53,7 +100,7 @@ struct VolumeStatusRow: View {
         }
         .padding(.horizontal, 10)
         .frame(height: 54)
-        .background(.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+        .duoRowBackground(highlightsOnHover: false)
     }
 
     @ViewBuilder
@@ -64,7 +111,7 @@ struct VolumeStatusRow: View {
             } label: {
                 Image(systemName: volumeSymbol)
                     .font(.system(size: 13, weight: .semibold))
-                    .frame(width: 28, height: 28)
+                    .frame(width: style == .controlCenter ? 22 : 28, height: style == .controlCenter ? 22 : 28)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -79,6 +126,7 @@ struct VolumeStatusRow: View {
     private var volumeSymbol: String {
         guard let percentage = volume.percentage else { return "speaker" }
         if volume.isMuted || percentage == 0 { return "speaker.slash.fill" }
+        if style == .controlCenter { return "speaker.fill" }
         switch percentage {
         case 1...33: return "speaker.wave.1"
         case 34...66: return "speaker.wave.2"

@@ -93,3 +93,25 @@
 "Extra Large" = "ใหญ่พิเศษ";
 "Battery Percentage" = "เปอร์เซ็นต์แบตเตอรี่";
 "Default" = "ค่าเริ่มต้น";
+
+/* Liquid Glass popover */
+"Sound" = "เสียง";
+"Output" = "เอาต์พุต";
+"Input" = "อินพุต";
+"Settings…" = "การตั้งค่า…";
+"Quit" = "ออก";
+
+/* Battery detail */
+"Power Source: %@" = "แหล่งพลังงาน: %@";
+"Power Adapter" = "อะแดปเตอร์แปลงไฟ";
+"Energy Mode" = "โหมดพลังงาน";
+"Low Power" = "พลังงานต่ำ";
+"High Power" = "พลังงานสูง";
+"Using Significant Energy" = "ใช้พลังงานมาก";
+"No Apps Using Significant Energy" = "ไม่มีแอปที่ใช้พลังงานมาก";
+"Display Brightness" = "ความสว่างของจอภาพ";
+"Battery Settings…" = "การตั้งค่าแบตเตอรี่…";
+"Unable to change Energy Mode" = "ไม่สามารถเปลี่ยนโหมดพลังงานได้";
+"Checking…" = "กำลังตรวจสอบ…";
+"Allow changing the Energy Mode." = "อนุญาตให้เปลี่ยนโหมดพลังงาน";
+"Show Energy Mode and battery details" = "แสดงโหมดพลังงานและรายละเอียดแบตเตอรี่";

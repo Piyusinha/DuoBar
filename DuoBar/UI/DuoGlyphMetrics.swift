@@ -8,15 +8,16 @@ struct DuoGlyphMetrics: Equatable {
         arcGap: 120.22,
         wifiSymbolSize: 12.4,
         wifiYOffset: -1.25,
-        dotDiameter: 2.557303,
+        dotDiameter: 2.968,
         dotSpacing: 1.766666667,
         dotYOffset: 7.495652174
     )
 
     static let canvasSize: CGFloat = 32
     static let menuBarVerticalOffset: CGFloat = 1
-    // Ring stroke / outer ring diameter, measured from Apple's iPhone Duo product photography.
-    static let referenceArcStrokeRatio: CGFloat = 0.076378
+    // Ring stroke / outer ring diameter. Apple's iPhone Duo photography measures 0.076378;
+    // the menu bar uses a bolder stroke so the ring reads clearly at status-item size.
+    static let referenceArcStrokeRatio: CGFloat = 0.100
     private static let priorArcStrokeRatio: CGFloat = 2.8 / 26.5
 
     var overallSize: CGFloat

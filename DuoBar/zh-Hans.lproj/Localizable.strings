@@ -128,3 +128,25 @@
 "Select audio input" = "选择音频输入";
 "Extra Large" = "超大";
 "Battery Percentage" = "电池百分比";
+
+/* Liquid Glass popover */
+"Sound" = "声音";
+"Output" = "输出";
+"Input" = "输入";
+"Settings…" = "设置…";
+"Quit" = "退出";
+
+/* Battery detail */
+"Power Source: %@" = "电源：%@";
+"Power Adapter" = "电源适配器";
+"Energy Mode" = "能耗模式";
+"Low Power" = "低功耗";
+"High Power" = "高功耗";
+"Using Significant Energy" = "正在使用大量能耗";
+"No Apps Using Significant Energy" = "没有正在使用大量能耗的应用";
+"Display Brightness" = "显示器亮度";
+"Battery Settings…" = "电池设置…";
+"Unable to change Energy Mode" = "无法更改能耗模式";
+"Checking…" = "正在检查…";
+"Allow changing the Energy Mode." = "允许更改能耗模式。";
+"Show Energy Mode and battery details" = "显示能耗模式和电池详细信息";

@@ -128,3 +128,25 @@
 "Select audio input" = "Select audio input";
 "Extra Large" = "Extra Large";
 "Battery Percentage" = "Battery Percentage";
+
+/* Liquid Glass popover */
+"Sound" = "Sound";
+"Output" = "Output";
+"Input" = "Input";
+"Settings…" = "Settings…";
+"Quit" = "Quit";
+
+/* Battery detail */
+"Power Source: %@" = "Power Source: %@";
+"Power Adapter" = "Power Adapter";
+"Energy Mode" = "Energy Mode";
+"Low Power" = "Low Power";
+"High Power" = "High Power";
+"Using Significant Energy" = "Using Significant Energy";
+"No Apps Using Significant Energy" = "No Apps Using Significant Energy";
+"Display Brightness" = "Display Brightness";
+"Battery Settings…" = "Battery Settings…";
+"Unable to change Energy Mode" = "Unable to change Energy Mode";
+"Checking…" = "Checking…";
+"Allow changing the Energy Mode." = "Allow changing the Energy Mode.";
+"Show Energy Mode and battery details" = "Show Energy Mode and battery details";
