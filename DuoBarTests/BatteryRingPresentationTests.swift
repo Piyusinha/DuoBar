@@ -283,6 +283,36 @@ final class BatteryRingPresentationTests: XCTestCase {
         }
     }
 
+    func testLevelTintThresholds() {
+        XCTAssertNil(levelTint(100))
+        XCTAssertNil(levelTint(25))
+        XCTAssertEqual(levelTint(24), .low)
+        XCTAssertEqual(levelTint(15), .low)
+        XCTAssertEqual(levelTint(14), .critical)
+        XCTAssertEqual(levelTint(0), .critical)
+    }
+
+    func testLevelTintIsNilWhenFullyCharged() {
+        XCTAssertNil(levelTint(20, pluggedIn: true, fullyCharged: true))
+    }
+
+    func testLevelTintIsNilWithoutBatteryOrPercentage() {
+        XCTAssertNil(BatteryLevelTint.resolve(battery: .unavailable))
+        XCTAssertNil(BatteryLevelTint.resolve(battery: BatteryStatus(
+            percentage: nil, isCharging: false, isPluggedIn: false, isFullyCharged: false, isAvailable: true
+        )))
+    }
+
+    private func levelTint(_ percentage: Int, pluggedIn: Bool = false, fullyCharged: Bool = false) -> BatteryLevelTint? {
+        BatteryLevelTint.resolve(battery: BatteryStatus(
+            percentage: percentage,
+            isCharging: false,
+            isPluggedIn: pluggedIn,
+            isFullyCharged: fullyCharged,
+            isAvailable: true
+        ))
+    }
+
     private func presentation(
         percentage: Int,
         charging: Bool = false,

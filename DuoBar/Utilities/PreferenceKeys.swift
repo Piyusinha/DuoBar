@@ -3,6 +3,7 @@ enum PreferenceKeys {
     static let animationsEnabled = "animationsEnabled"
     static let menuBarIconScale = MenuBarIconSize.preferenceKey
     static let batteryColorCoding = "batteryColorCoding"
+    static let batteryLevelIconTint = "batteryLevelIconTint"
     static let adaptiveRingPriority = "adaptiveRingPriority"
     static let adaptiveRingColorCoding = "adaptiveRingColorCoding"
     static let openOnHover = "duoBar.openOnHover"

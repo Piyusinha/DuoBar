@@ -5,6 +5,26 @@ enum BatteryBoltPlacement: Equatable, Sendable {
     case topGap
 }
 
+/// Whole-icon warning color for a low battery; nil keeps the icon's normal colors.
+enum BatteryLevelTint: Equatable, Sendable {
+    /// 15–24%
+    case low
+    /// Below 15%
+    case critical
+
+    static func resolve(battery: BatteryStatus) -> BatteryLevelTint? {
+        guard battery.isAvailable,
+              !battery.isFullyCharged,
+              let percentage = battery.percentage
+        else { return nil }
+        switch percentage {
+        case ..<15: return .critical
+        case 15..<25: return .low
+        default: return nil
+        }
+    }
+}
+
 enum BatteryRingColorRole: Equatable, Sendable {
     case monochrome
     case charging

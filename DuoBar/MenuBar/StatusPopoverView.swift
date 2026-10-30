@@ -5,6 +5,7 @@ struct StatusPopoverView: View {
     @ObservedObject private var statusStore: SystemStatusStore
     @AppStorage(PreferenceKeys.showBatteryPercentage) private var showBatteryPercentage = true
     @AppStorage(PreferenceKeys.batteryColorCoding) private var batteryColorCoding = false
+    @AppStorage(PreferenceKeys.batteryLevelIconTint) private var batteryLevelIconTint = true
     @State private var isBatteryDetailPresented = false
     private let onClose: () -> Void
 
@@ -169,7 +170,8 @@ struct StatusPopoverView: View {
                     status: statusStore.status,
                     metrics: DuoGlyphMetrics.standard.sized(20),
                     animationsEnabled: false,
-                    batteryColorCodingEnabled: batteryColorCoding
+                    batteryColorCodingEnabled: batteryColorCoding,
+                    batteryLevelTintEnabled: batteryLevelIconTint
                 )
             }
             .padding(.horizontal, 2)

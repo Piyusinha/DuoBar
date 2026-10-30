@@ -13,6 +13,8 @@
 "Approval is required in System Settings → General → Login Items." = "ต้องอนุมัติในการตั้งค่าระบบ → ทั่วไป → รายการเปิดเมื่อเข้าสู่ระบบ";
 "Battery Ring" = "วงแหวนแบตเตอรี่";
 "Battery Color Coding" = "การเข้ารหัสสีแบตเตอรี่";
+"Color Icon by Battery Level" = "สีไอคอนตามระดับแบตเตอรี่";
+"Yellow below 25%, red below 15%." = "สีเหลืองเมื่อต่ำกว่า 25% สีแดงเมื่อต่ำกว่า 15%";
 "Adaptive Ring" = "วงแหวนปรับอัตโนมัติ";
 "Adaptive Ring Priority" = "ลำดับความสำคัญของวงแหวนปรับอัตโนมัติ";
 "Used only when multiple system conditions need attention. Critical conditions can still take priority." = "ใช้เฉพาะเมื่อมีหลายสถานะของระบบที่ต้องการความสนใจพร้อมกัน สถานะวิกฤตยังคงมีความสำคัญเหนือกว่าได้";

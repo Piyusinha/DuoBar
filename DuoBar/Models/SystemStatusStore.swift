@@ -39,7 +39,9 @@ final class SystemStatusStore: ObservableObject {
         self.deviceContext = resolvedDeviceContext
         let resolvedLaptopRingModeController = laptopRingModeController ?? LaptopRingModeController(
             hasInternalBattery: resolvedDeviceContext.hasInternalBattery,
-            fullChargeDelay: Self.developmentFullChargeDelay
+            // Keep the battery ring at full charge instead of handing over to the Adaptive Ring.
+            switchesToAdaptive: false,
+            fullChargeDelay: .default
         )
         self.laptopRingModeController = resolvedLaptopRingModeController
         nearbyWiFiController = NearbyWiFiController(
@@ -104,16 +106,6 @@ final class SystemStatusStore: ObservableObject {
             bluetoothService.start()
         }
     }
-
-    private static let developmentFullChargeDelay: LaptopAdaptiveFullChargeDelay = {
-        #if DEBUG
-        // TEMPORARY: real-hardware MacBook Adaptive Ring QA. Restore `.default`
-        // after the physical full-charge-delay path has been validated.
-        return .oneMinute
-        #else
-        return .default
-        #endif
-    }()
 
     func refresh() {
         batteryService.refresh()

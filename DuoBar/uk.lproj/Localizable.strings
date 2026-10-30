@@ -19,6 +19,8 @@
 "Approval is required in System Settings → General → Login Items." = "Потрібно дозволити в «Системних параметрах» → «Загальні» → «Об’єкти входу».";
 "Battery Ring" = "Кільце батареї";
 "Battery Color Coding" = "Кольорова індикація батареї";
+"Color Icon by Battery Level" = "Колір значка за рівнем заряду";
+"Yellow below 25%, red below 15%." = "Жовтий нижче 25%, червоний нижче 15%.";
 "Adaptive Ring" = "Адаптивне кільце";
 "Adaptive Ring Priority" = "Пріоритет адаптивного кільця";
 "Used only when multiple system conditions need attention. Critical conditions can still take priority." = "Використовується, лише якщо увагу потрібно одразу кільком станам. Критичні й надалі можуть мати пріоритет.";

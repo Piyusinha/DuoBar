@@ -6,6 +6,7 @@ struct SettingsView: View {
     @AppStorage(PreferenceKeys.animationsEnabled) private var animationsEnabled = true
     @AppStorage(PreferenceKeys.menuBarIconScale) private var menuBarIconScale = MenuBarIconSize.defaultScale
     @AppStorage(PreferenceKeys.batteryColorCoding) private var batteryColorCoding = false
+    @AppStorage(PreferenceKeys.batteryLevelIconTint) private var batteryLevelIconTint = true
     @AppStorage(PreferenceKeys.adaptiveRingPriority) private var adaptiveRingPriorityRaw = PerformancePreference.automatic.rawValue
     @AppStorage(PreferenceKeys.adaptiveRingColorCoding) private var adaptiveRingColorCoding = false
     @AppStorage(PreferenceKeys.openOnHover) private var openOnHover = false
@@ -89,6 +90,10 @@ struct SettingsView: View {
             if showsBatteryRingSettings {
                 Section(localized("Battery Ring")) {
                     Toggle(localized("Battery Color Coding"), isOn: $batteryColorCoding)
+                    Toggle(localized("Color Icon by Battery Level"), isOn: $batteryLevelIconTint)
+                    Text(localized("Yellow below 25%, red below 15%."))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
             }
 

@@ -128,12 +128,6 @@ final class LaptopRingModeControllerTests: XCTestCase {
         XCTAssertEqual(LaptopAdaptiveFullChargeDelay.default.timeInterval, 15 * 60)
     }
 
-    #if DEBUG
-    func testTemporaryDevelopmentHardwareQADelayIsOneMinute() {
-        XCTAssertEqual(LaptopAdaptiveFullChargeDelay.oneMinute.timeInterval, 60)
-    }
-    #endif
-
     func testImmediateFullChargeDelayActivatesImmediately() {
         let controller = makeController(delay: .immediately)
         controller.update(with: battery(100, plugged: true, full: true))
@@ -264,6 +258,22 @@ final class LaptopRingModeControllerTests: XCTestCase {
             scheduler: scheduler
         )
         controller.update(with: battery(100, charging: true, plugged: true, full: true))
+
+        XCTAssertEqual(controller.state, .battery)
+        XCTAssertEqual(scheduler.scheduledCount, 0)
+    }
+
+    func testDisabledSwitchKeepsBatteryRingAtFullChargeAndTarget() {
+        let scheduler = ManualScheduler()
+        let controller = LaptopRingModeController(
+            hasInternalBattery: true,
+            switchesToAdaptive: false,
+            fullChargeDelay: .immediately,
+            scheduler: scheduler
+        )
+        controller.update(with: battery(40, charging: true, plugged: true))
+        controller.update(with: battery(95, charging: true, plugged: true))
+        controller.update(with: battery(100, plugged: true, full: true))
 
         XCTAssertEqual(controller.state, .battery)
         XCTAssertEqual(scheduler.scheduledCount, 0)

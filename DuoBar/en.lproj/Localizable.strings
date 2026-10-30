@@ -19,6 +19,8 @@
 "Approval is required in System Settings → General → Login Items." = "Approval is required in System Settings → General → Login Items.";
 "Battery Ring" = "Battery Ring";
 "Battery Color Coding" = "Battery Color Coding";
+"Color Icon by Battery Level" = "Color Icon by Battery Level";
+"Yellow below 25%, red below 15%." = "Yellow below 25%, red below 15%.";
 "Adaptive Ring" = "Adaptive Ring";
 "Adaptive Ring Priority" = "Adaptive Ring Priority";
 "Used only when multiple system conditions need attention. Critical conditions can still take priority." = "Used only when multiple system conditions need attention. Critical conditions can still take priority.";

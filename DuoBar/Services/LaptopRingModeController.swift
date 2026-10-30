@@ -49,6 +49,8 @@ final class DispatchLaptopRingModeScheduler: LaptopRingModeScheduling {
 @MainActor
 final class LaptopRingModeController {
     private let hasInternalBattery: Bool
+    /// When false, the ring stays on Battery however long the Mac is charged and plugged in.
+    private let switchesToAdaptive: Bool
     private let scheduler: LaptopRingModeScheduling
     private var fullChargeDelayTask: LaptopRingModeScheduledTask?
     private var fullChargeDelayGeneration = 0
@@ -61,10 +63,12 @@ final class LaptopRingModeController {
 
     init(
         hasInternalBattery: Bool,
+        switchesToAdaptive: Bool = true,
         fullChargeDelay: LaptopAdaptiveFullChargeDelay = .default,
         scheduler: LaptopRingModeScheduling? = nil
     ) {
         self.hasInternalBattery = hasInternalBattery
+        self.switchesToAdaptive = switchesToAdaptive
         self.fullChargeDelay = fullChargeDelay
         self.scheduler = scheduler ?? DispatchLaptopRingModeScheduler()
     }
@@ -72,7 +76,7 @@ final class LaptopRingModeController {
     func update(with battery: BatteryStatus) {
         latestBattery = battery
 
-        guard hasInternalBattery else {
+        guard hasInternalBattery, switchesToAdaptive else {
             resetForUnplug()
             return
         }

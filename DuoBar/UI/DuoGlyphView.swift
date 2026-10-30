@@ -27,6 +27,7 @@ struct DuoGlyphView: View {
     var usesCustomRingTransition = false
     var ringColorOverride: Color?
     var batteryColorCodingEnabled = false; var showBatteryPercentage = false
+    var batteryLevelTintEnabled = false
     var chargingBoltProgressOverride: CGFloat?
     var chargingTrackProgressOverride: CGFloat?
     var chargingColorMixOverride: CGFloat?
@@ -55,7 +56,8 @@ struct DuoGlyphView: View {
         chargingTrackProgressOverride: CGFloat? = nil,
         chargingColorMixOverride: CGFloat? = nil,
         chargingGapProgressOverride: CGFloat? = nil,
-        showBatteryPercentage: Bool = false
+        showBatteryPercentage: Bool = false,
+        batteryLevelTintEnabled: Bool = false
     ) {
         self.chargingGapProgressOverride = chargingGapProgressOverride
         self.status = status
@@ -69,6 +71,7 @@ struct DuoGlyphView: View {
         self.ringColorOverride = ringColorOverride
         self.batteryColorCodingEnabled = batteryColorCodingEnabled
         self.showBatteryPercentage = showBatteryPercentage
+        self.batteryLevelTintEnabled = batteryLevelTintEnabled
         self.chargingBoltProgressOverride = chargingBoltProgressOverride
         self.chargingTrackProgressOverride = chargingTrackProgressOverride
         self.chargingColorMixOverride = chargingColorMixOverride
@@ -100,6 +103,70 @@ struct DuoGlyphView: View {
     }
 
     var body: some View {
+        levelTinted(glyph)
+        .accessibilityHidden(true)
+        .task(id: glyphState.audioEventID) {
+            $centerPulseScale.wrappedValue = 1
+            guard glyphState.audioEventID != nil, motionAllowed else { return }
+            try? await Task.sleep(for: .milliseconds(260))
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeOut(duration: 0.1)) {
+                $centerPulseScale.wrappedValue = 1.055
+            }
+            try? await Task.sleep(for: .milliseconds(100))
+            guard !Task.isCancelled else {
+                $centerPulseScale.wrappedValue = 1
+                return
+            }
+            withAnimation(.spring(response: 0.24, dampingFraction: 0.9)) {
+                $centerPulseScale.wrappedValue = 1
+            }
+        }
+        .onChange(of: chargingPresentationTarget) { target in
+            let showing = target > 0
+            if chargingBoltProgressOverride == nil {
+                withAnimation(boltAnimation(showing: showing)) {
+                    $chargingBoltProgress.wrappedValue = target
+                }
+            }
+            if chargingGapProgressOverride == nil {
+                withAnimation(gapAnimation(showing: showing)) {
+                    $chargingGapProgress.wrappedValue = target
+                }
+            }
+        }
+        .onChange(of: glyphState.batteryPresentation.boltDimmed) { dimmed in
+            let target: CGFloat = dimmed ? 1 : 0
+            withAnimation(boltDimAnimation) {
+                $chargingBoltDim.wrappedValue = target
+            }
+        }
+        .task(id: chargingColorTarget) {
+            guard chargingColorMixOverride == nil else { return }
+            guard chargingColorMix != chargingColorTarget else { return }
+            guard motionAllowed else {
+                $chargingColorMix.wrappedValue = chargingColorTarget
+                return
+            }
+
+            if chargingColorTarget > 0 {
+                try? await Task.sleep(for: .seconds(DuoNativeVisualConstants.chargingColorDelay))
+                guard !Task.isCancelled else { return }
+            }
+            withAnimation(chargingColorAnimation(showing: chargingColorTarget > 0)) {
+                $chargingColorMix.wrappedValue = chargingColorTarget
+            }
+        }
+        #if DEBUG
+        .onChange(of: glyphState.centerState) { centerState in
+            if centerState == .adaptiveEntry {
+                NSLog("%@", "[DuoBar Adaptive QA] sparkles displayed")
+            }
+        }
+        #endif
+    }
+
+    private var glyph: some View {
         ZStack {
             Group {
                 if glyphState.ringPresentation.mode == .adaptive {
@@ -206,66 +273,25 @@ struct DuoGlyphView: View {
         .frame(width: DuoGlyphMetrics.canvasSize, height: DuoGlyphMetrics.canvasSize)
         .scaleEffect(metrics.overallSize / DuoGlyphMetrics.canvasSize)
         .frame(width: metrics.overallSize, height: metrics.overallSize)
-        .accessibilityHidden(true)
-        .task(id: glyphState.audioEventID) {
-            $centerPulseScale.wrappedValue = 1
-            guard glyphState.audioEventID != nil, motionAllowed else { return }
-            try? await Task.sleep(for: .milliseconds(260))
-            guard !Task.isCancelled else { return }
-            withAnimation(.easeOut(duration: 0.1)) {
-                $centerPulseScale.wrappedValue = 1.055
-            }
-            try? await Task.sleep(for: .milliseconds(100))
-            guard !Task.isCancelled else {
-                $centerPulseScale.wrappedValue = 1
-                return
-            }
-            withAnimation(.spring(response: 0.24, dampingFraction: 0.9)) {
-                $centerPulseScale.wrappedValue = 1
-            }
-        }
-        .onChange(of: chargingPresentationTarget) { target in
-            let showing = target > 0
-            if chargingBoltProgressOverride == nil {
-                withAnimation(boltAnimation(showing: showing)) {
-                    $chargingBoltProgress.wrappedValue = target
-                }
-            }
-            if chargingGapProgressOverride == nil {
-                withAnimation(gapAnimation(showing: showing)) {
-                    $chargingGapProgress.wrappedValue = target
-                }
-            }
-        }
-        .onChange(of: glyphState.batteryPresentation.boltDimmed) { dimmed in
-            let target: CGFloat = dimmed ? 1 : 0
-            withAnimation(boltDimAnimation) {
-                $chargingBoltDim.wrappedValue = target
-            }
-        }
-        .task(id: chargingColorTarget) {
-            guard chargingColorMixOverride == nil else { return }
-            guard chargingColorMix != chargingColorTarget else { return }
-            guard motionAllowed else {
-                $chargingColorMix.wrappedValue = chargingColorTarget
-                return
-            }
+    }
 
-            if chargingColorTarget > 0 {
-                try? await Task.sleep(for: .seconds(DuoNativeVisualConstants.chargingColorDelay))
-                guard !Task.isCancelled else { return }
-            }
-            withAnimation(chargingColorAnimation(showing: chargingColorTarget > 0)) {
-                $chargingColorMix.wrappedValue = chargingColorTarget
-            }
+    /// Paints every part of the glyph in the battery-level color, keeping each
+    /// part's own opacity (dimmed dots and the ring track stay faint).
+    @ViewBuilder
+    private func levelTinted<Glyph: View>(_ glyph: Glyph) -> some View {
+        if let levelTint {
+            Color(nsColor: nsColor(for: levelTint))
+                .frame(width: metrics.overallSize, height: metrics.overallSize)
+                .mask { glyph }
+                .animation(batteryColorFadeAnimation, value: levelTint)
+        } else {
+            glyph
         }
-        #if DEBUG
-        .onChange(of: glyphState.centerState) { centerState in
-            if centerState == .adaptiveEntry {
-                NSLog("%@", "[DuoBar Adaptive QA] sparkles displayed")
-            }
-        }
-        #endif
+    }
+
+    private var levelTint: BatteryLevelTint? {
+        guard batteryLevelTintEnabled else { return nil }
+        return BatteryLevelTint.resolve(battery: status.battery)
     }
 
     private var motionAllowed: Bool {
@@ -405,6 +431,13 @@ struct DuoGlyphView: View {
         case .lowPowerMode: return .systemYellow
         case .lowBattery: return .systemRed
         case .monochrome: return .labelColor
+        }
+    }
+
+    private func nsColor(for tint: BatteryLevelTint) -> NSColor {
+        switch tint {
+        case .low: return .systemYellow
+        case .critical: return .systemRed
         }
     }
 

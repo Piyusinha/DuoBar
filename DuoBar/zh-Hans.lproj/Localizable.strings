@@ -19,6 +19,8 @@
 "Approval is required in System Settings → General → Login Items." = "需要在“系统设置”→“通用”→“登录项”中批准。";
 "Battery Ring" = "Battery Ring";
 "Battery Color Coding" = "电池颜色编码";
+"Color Icon by Battery Level" = "按电量为图标着色";
+"Yellow below 25%, red below 15%." = "低于 25% 为黄色，低于 15% 为红色。";
 "Adaptive Ring" = "Adaptive Ring";
 "Adaptive Ring Priority" = "Adaptive Ring 优先级";
 "Used only when multiple system conditions need attention. Critical conditions can still take priority." = "仅当多个系统状态需要关注时使用。严重状态仍可优先显示。";
