@@ -159,3 +159,20 @@
 "The password is incorrect." = "密码不正确。";
 "macOS did not allow joining this network. Try again from Wi-Fi Settings." = "macOS 不允许加入此网络。请在 Wi-Fi 设置中重试。";
 "The network is no longer available." = "该网络已不可用。";
+
+/* Keep Awake */
+"Keep Awake" = "保持唤醒";
+"5m" = "5分钟";
+"10m" = "10分钟";
+"30m" = "30分钟";
+"1h" = "1小时";
+"5 minutes" = "5分钟";
+"10 minutes" = "10分钟";
+"30 minutes" = "30分钟";
+"1 hour" = "1小时";
+"Until turned off" = "直到关闭";
+"Keep awake for %@" = "保持唤醒：%@";
+"Awake until %@" = "保持唤醒至 %@";
+"Awake until turned off" = "保持唤醒直到关闭";
+"keep awake on" = "保持唤醒已开启";
+"%@, %@" = "%@, %@";

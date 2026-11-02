@@ -4,6 +4,7 @@ struct DuoStatusView: View {
     @ObservedObject private var statusStore: SystemStatusStore
     @ObservedObject private var priorityController: StatusPriorityController
     @ObservedObject private var adaptiveRingMonitor = AdaptiveRingMonitor.shared
+    @ObservedObject private var keepAwake = KeepAwakeService.shared
     @AppStorage(PreferenceKeys.animationsEnabled) private var animationsEnabled = true
     @AppStorage(PreferenceKeys.menuBarIconScale) private var menuBarIconScale = MenuBarIconSize.defaultScale
     @AppStorage(PreferenceKeys.batteryColorCoding) private var batteryColorCoding = false
@@ -45,7 +46,12 @@ struct DuoStatusView: View {
     }
 
     private var targetWidth: CGFloat {
-        metrics.statusItemWidth
+        metrics.statusItemWidth + (keepAwake.isActive ? keepAwakeBadgeWidth : 0)
+    }
+
+    /// Room for the cup shown beside the ring while Keep Awake is on.
+    private var keepAwakeBadgeWidth: CGFloat {
+        (10 * menuBarIconScale).rounded(.up)
     }
 
     private var animation: Animation? {
@@ -80,7 +86,19 @@ struct DuoStatusView: View {
             batteryLevelTintEnabled: batteryLevelIconTint
         )
         .offset(y: DuoGlyphMetrics.menuBarVerticalOffset)
-        .frame(width: targetWidth, height: 22)
+        .frame(width: metrics.statusItemWidth, height: 22)
+        .frame(width: targetWidth, height: 22, alignment: .leading)
+        .overlay(alignment: .trailing) {
+            if keepAwake.isActive {
+                Image(systemName: "cup.and.saucer.fill")
+                    .font(.system(size: 8.5 * menuBarIconScale, weight: .semibold))
+                    .foregroundStyle(.primary)
+                    .frame(width: keepAwakeBadgeWidth)
+                    .offset(y: 4 * menuBarIconScale)
+                    .transition(.opacity.combined(with: .scale(scale: 0.6)))
+            }
+        }
+        .animation(animation, value: keepAwake.isActive)
         .contentShape(Rectangle())
         .animation(animation, value: targetWidth)
         .onAppear { onWidthChange(targetWidth) }
@@ -198,7 +216,8 @@ struct DuoStatusView: View {
             volume = statusStore.status.audio.volume.percentage.map { localized("volume %d percent", $0) } ?? localized("volume unavailable")
         }
         let battery = statusStore.status.battery.percentage.map { localized("battery %d percent", $0) } ?? localized("battery unavailable")
-        return localized("%@, %@, %@", network, volume, battery)
+        let summary = localized("%@, %@, %@", network, volume, battery)
+        return keepAwake.isActive ? localized("%@, %@", summary, localized("keep awake on")) : summary
     }
 
     private var metrics: DuoGlyphMetrics {

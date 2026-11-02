@@ -136,6 +136,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             NSWorkspace.shared.notificationCenter.removeObserver(wakeObserver)
             self.wakeObserver = nil
         }
+        KeepAwakeService.shared.stop()
         menuBarController?.invalidate()
         menuBarController = nil
         statusStore = nil

@@ -159,3 +159,20 @@
 "The password is incorrect." = "Неверный пароль.";
 "macOS did not allow joining this network. Try again from Wi-Fi Settings." = "macOS не разрешила подключиться к этой сети. Попробуйте в настройках Wi-Fi.";
 "The network is no longer available." = "Сеть больше недоступна.";
+
+/* Keep Awake */
+"Keep Awake" = "Не засыпать";
+"5m" = "5 мин";
+"10m" = "10 мин";
+"30m" = "30 мин";
+"1h" = "1 ч";
+"5 minutes" = "5 минут";
+"10 minutes" = "10 минут";
+"30 minutes" = "30 минут";
+"1 hour" = "1 час";
+"Until turned off" = "До отключения";
+"Keep awake for %@" = "Не засыпать: %@";
+"Awake until %@" = "Активно до %@";
+"Awake until turned off" = "Активно до отключения";
+"keep awake on" = "режим «Не засыпать» включён";
+"%@, %@" = "%@, %@";

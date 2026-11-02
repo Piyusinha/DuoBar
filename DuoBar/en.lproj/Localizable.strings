@@ -159,3 +159,20 @@
 "The password is incorrect." = "The password is incorrect.";
 "macOS did not allow joining this network. Try again from Wi-Fi Settings." = "macOS did not allow joining this network. Try again from Wi-Fi Settings.";
 "The network is no longer available." = "The network is no longer available.";
+
+/* Keep Awake */
+"Keep Awake" = "Keep Awake";
+"5m" = "5m";
+"10m" = "10m";
+"30m" = "30m";
+"1h" = "1h";
+"5 minutes" = "5 minutes";
+"10 minutes" = "10 minutes";
+"30 minutes" = "30 minutes";
+"1 hour" = "1 hour";
+"Until turned off" = "Until turned off";
+"Keep awake for %@" = "Keep awake for %@";
+"Awake until %@" = "Awake until %@";
+"Awake until turned off" = "Awake until turned off";
+"keep awake on" = "keep awake on";
+"%@, %@" = "%@, %@";

@@ -124,3 +124,20 @@
 "The password is incorrect." = "รหัสผ่านไม่ถูกต้อง";
 "macOS did not allow joining this network. Try again from Wi-Fi Settings." = "macOS ไม่อนุญาตให้เข้าร่วมเครือข่ายนี้ ลองอีกครั้งจากการตั้งค่า Wi-Fi";
 "The network is no longer available." = "เครือข่ายนี้ไม่พร้อมใช้งานแล้ว";
+
+/* Keep Awake */
+"Keep Awake" = "ไม่ให้หลับ";
+"5m" = "5 นาที";
+"10m" = "10 นาที";
+"30m" = "30 นาที";
+"1h" = "1 ชม.";
+"5 minutes" = "5 นาที";
+"10 minutes" = "10 นาที";
+"30 minutes" = "30 นาที";
+"1 hour" = "1 ชั่วโมง";
+"Until turned off" = "จนกว่าจะปิด";
+"Keep awake for %@" = "ไม่ให้หลับเป็นเวลา %@";
+"Awake until %@" = "ตื่นอยู่ถึง %@";
+"Awake until turned off" = "ตื่นอยู่จนกว่าจะปิด";
+"keep awake on" = "เปิดไม่ให้หลับอยู่";
+"%@, %@" = "%@, %@";

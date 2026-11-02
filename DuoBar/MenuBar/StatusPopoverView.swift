@@ -3,6 +3,7 @@ import SwiftUI
 
 struct StatusPopoverView: View {
     @ObservedObject private var statusStore: SystemStatusStore
+    @ObservedObject private var keepAwake = KeepAwakeService.shared
     @AppStorage(PreferenceKeys.showBatteryPercentage) private var showBatteryPercentage = true
     @AppStorage(PreferenceKeys.batteryColorCoding) private var batteryColorCoding = false
     @AppStorage(PreferenceKeys.batteryLevelIconTint) private var batteryLevelIconTint = true
@@ -115,6 +116,10 @@ struct StatusPopoverView: View {
                     )
                 }
             }
+
+            ControlCenterSeparator()
+
+            KeepAwakeSection(keepAwake: keepAwake)
 
             #if DEBUG
             DebugStatusSimulatorView(statusStore: statusStore)
@@ -239,6 +244,11 @@ struct StatusPopoverView: View {
                 hint: localized("Select audio input"),
                 showsBluetoothSettings: false
             )
+
+            KeepAwakeSection(keepAwake: keepAwake, controlCenterStyle: false)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 10)
+                .duoRowBackground(highlightsOnHover: false)
 
             #if DEBUG
             DebugStatusSimulatorView(statusStore: statusStore)
