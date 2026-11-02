@@ -45,6 +45,17 @@ enum KeepAwakeDuration: Hashable, Identifiable, CaseIterable, Sendable {
     }
 }
 
+enum KeepAwakeSymbol {
+    /// A steaming cup while Keep Awake runs (SF Symbols 5, macOS 14+), with the
+    /// plain cup as the macOS 13 fallback.
+    static var active: String {
+        if #available(macOS 14.0, *) { return "cup.and.heat.waves.fill" }
+        return "cup.and.saucer.fill"
+    }
+
+    static let inactive = "cup.and.saucer"
+}
+
 struct KeepAwakeSession: Equatable, Sendable {
     let duration: KeepAwakeDuration
     let startDate: Date

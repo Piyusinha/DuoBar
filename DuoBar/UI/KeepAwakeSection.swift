@@ -23,7 +23,7 @@ struct KeepAwakeSection: View {
             ControlCenterSectionHeader(title: localized("Keep Awake")) { toggle }
         } else {
             HStack(spacing: 11) {
-                Image(systemName: keepAwake.isActive ? "cup.and.saucer.fill" : "cup.and.saucer")
+                Image(systemName: keepAwake.isActive ? KeepAwakeSymbol.active : KeepAwakeSymbol.inactive)
                     .font(.system(size: 13, weight: .semibold))
                     .frame(width: 28, height: 28)
                     .duoIconBackground(.primary.opacity(0.12))
@@ -73,7 +73,7 @@ struct KeepAwakeSection: View {
 
     private func statusLine(for session: KeepAwakeSession) -> some View {
         HStack(spacing: 6) {
-            Image(systemName: "cup.and.saucer.fill")
+            Image(systemName: KeepAwakeSymbol.active)
                 .font(.system(size: 10, weight: .semibold))
                 .foregroundStyle(Color.accentColor)
             if let endDate = session.endDate {

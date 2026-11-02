@@ -51,7 +51,7 @@ struct DuoStatusView: View {
 
     /// Room for the cup shown beside the ring while Keep Awake is on.
     private var keepAwakeBadgeWidth: CGFloat {
-        (10 * menuBarIconScale).rounded(.up)
+        (11 * menuBarIconScale).rounded(.up)
     }
 
     private var animation: Animation? {
@@ -90,11 +90,11 @@ struct DuoStatusView: View {
         .frame(width: targetWidth, height: 22, alignment: .leading)
         .overlay(alignment: .trailing) {
             if keepAwake.isActive {
-                Image(systemName: "cup.and.saucer.fill")
-                    .font(.system(size: 8.5 * menuBarIconScale, weight: .semibold))
+                Image(systemName: KeepAwakeSymbol.active)
+                    .font(.system(size: 9.5 * menuBarIconScale, weight: .semibold))
                     .foregroundStyle(.primary)
                     .frame(width: keepAwakeBadgeWidth)
-                    .offset(y: 4 * menuBarIconScale)
+                    .offset(y: 2.5 * menuBarIconScale)
                     .transition(.opacity.combined(with: .scale(scale: 0.6)))
             }
         }
