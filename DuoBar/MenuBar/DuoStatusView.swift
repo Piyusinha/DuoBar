@@ -59,9 +59,9 @@ struct DuoStatusView: View {
         metrics.statusItemWidth + (showsKeepAwakeBadge ? keepAwakeBadgeWidth : 0)
     }
 
-    /// Room for the steaming mug shown beside the ring while Keep Awake is on.
+    /// Room for the steaming cup shown beside the ring while Keep Awake is on.
     private var keepAwakeBadgeWidth: CGFloat {
-        (13 * menuBarIconScale).rounded(.up)
+        (11 * menuBarIconScale).rounded(.up)
     }
 
     private var animation: Animation? {
@@ -100,14 +100,12 @@ struct DuoStatusView: View {
         .frame(width: targetWidth, height: 22, alignment: .leading)
         .overlay(alignment: .trailing) {
             if showsKeepAwakeBadge {
-                SteamingMugGlyph(
-                    height: 15 * menuBarIconScale,
-                    animates: animationsEnabled && !reduceMotion
-                )
-                .foregroundStyle(.primary)
-                .frame(width: keepAwakeBadgeWidth)
-                .offset(y: 0.5 * menuBarIconScale)
-                .transition(.opacity.combined(with: .scale(scale: 0.6)))
+                Image(systemName: KeepAwakeSymbol.active)
+                    .font(.system(size: 9.5 * menuBarIconScale, weight: .semibold))
+                    .foregroundStyle(.primary)
+                    .frame(width: keepAwakeBadgeWidth)
+                    .offset(y: 2.5 * menuBarIconScale)
+                    .transition(.opacity.combined(with: .scale(scale: 0.6)))
             }
         }
         .animation(animation, value: showsKeepAwakeBadge)
