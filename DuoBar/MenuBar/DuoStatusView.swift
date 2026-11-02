@@ -5,6 +5,10 @@ struct DuoStatusView: View {
     @ObservedObject private var priorityController: StatusPriorityController
     @ObservedObject private var adaptiveRingMonitor = AdaptiveRingMonitor.shared
     @ObservedObject private var keepAwake = KeepAwakeService.shared
+    @ObservedObject private var popoverVisibility: PopoverVisibility
+    /// Follows Keep Awake, but only changes while the popover is closed so the
+    /// status item never resizes (and shifts the popover) under the pointer.
+    @State private var showsKeepAwakeBadge: Bool
     @AppStorage(PreferenceKeys.animationsEnabled) private var animationsEnabled = true
     @AppStorage(PreferenceKeys.menuBarIconScale) private var menuBarIconScale = MenuBarIconSize.defaultScale
     @AppStorage(PreferenceKeys.batteryColorCoding) private var batteryColorCoding = false
@@ -37,8 +41,14 @@ struct DuoStatusView: View {
 
     private let onWidthChange: (CGFloat) -> Void
 
-    init(statusStore: SystemStatusStore, onWidthChange: @escaping (CGFloat) -> Void = { _ in }) {
+    init(
+        statusStore: SystemStatusStore,
+        popoverVisibility: PopoverVisibility = PopoverVisibility(),
+        onWidthChange: @escaping (CGFloat) -> Void = { _ in }
+    ) {
         self.statusStore = statusStore
+        self.popoverVisibility = popoverVisibility
+        _showsKeepAwakeBadge = State(initialValue: KeepAwakeService.shared.isActive)
         self.priorityController = statusStore.priorityController
         self.onWidthChange = onWidthChange
         _lastLaptopRingMode = State(initialValue: statusStore.laptopRingModeState.mode)
@@ -46,12 +56,12 @@ struct DuoStatusView: View {
     }
 
     private var targetWidth: CGFloat {
-        metrics.statusItemWidth + (keepAwake.isActive ? keepAwakeBadgeWidth : 0)
+        metrics.statusItemWidth + (showsKeepAwakeBadge ? keepAwakeBadgeWidth : 0)
     }
 
-    /// Room for the cup shown beside the ring while Keep Awake is on.
+    /// Room for the steaming mug shown beside the ring while Keep Awake is on.
     private var keepAwakeBadgeWidth: CGFloat {
-        (11 * menuBarIconScale).rounded(.up)
+        (13 * menuBarIconScale).rounded(.up)
     }
 
     private var animation: Animation? {
@@ -89,16 +99,26 @@ struct DuoStatusView: View {
         .frame(width: metrics.statusItemWidth, height: 22)
         .frame(width: targetWidth, height: 22, alignment: .leading)
         .overlay(alignment: .trailing) {
-            if keepAwake.isActive {
-                Image(systemName: KeepAwakeSymbol.active)
-                    .font(.system(size: 9.5 * menuBarIconScale, weight: .semibold))
-                    .foregroundStyle(.primary)
-                    .frame(width: keepAwakeBadgeWidth)
-                    .offset(y: 2.5 * menuBarIconScale)
-                    .transition(.opacity.combined(with: .scale(scale: 0.6)))
+            if showsKeepAwakeBadge {
+                SteamingMugGlyph(
+                    height: 15 * menuBarIconScale,
+                    animates: animationsEnabled && !reduceMotion
+                )
+                .foregroundStyle(.primary)
+                .frame(width: keepAwakeBadgeWidth)
+                .offset(y: 0.5 * menuBarIconScale)
+                .transition(.opacity.combined(with: .scale(scale: 0.6)))
             }
         }
-        .animation(animation, value: keepAwake.isActive)
+        .animation(animation, value: showsKeepAwakeBadge)
+        .onChange(of: keepAwake.isActive) { isActive in
+            guard !popoverVisibility.isShown else { return }
+            showsKeepAwakeBadge = isActive
+        }
+        .onChange(of: popoverVisibility.isShown) { isShown in
+            guard !isShown else { return }
+            showsKeepAwakeBadge = keepAwake.isActive
+        }
         .contentShape(Rectangle())
         .animation(animation, value: targetWidth)
         .onAppear { onWidthChange(targetWidth) }

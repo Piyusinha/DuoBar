@@ -1,12 +1,19 @@
 import AppKit
 import SwiftUI
 
+/// Whether the status popover is on screen, for views in the status item.
+/// Only changed on the main thread, by `MenuBarController`.
+final class PopoverVisibility: ObservableObject {
+    @Published var isShown = false
+}
+
 @MainActor
 final class MenuBarController: NSObject {
     private static let hoverCloseDelay: TimeInterval = 0.25
 
     private let statusItem: NSStatusItem
     private let popover = NSPopover()
+    private let popoverVisibility = PopoverVisibility()
     private let statusStore: SystemStatusStore
     private var hostingView: PassthroughHostingView<DuoStatusView>?
     private var popoverTrackingView: HoverTrackingContainerView?
@@ -44,7 +51,7 @@ final class MenuBarController: NSObject {
         button.title = ""
         button.toolTip = localized("DuoBar system status")
 
-        let rootView = DuoStatusView(statusStore: statusStore) { [weak self] width in
+        let rootView = DuoStatusView(statusStore: statusStore, popoverVisibility: popoverVisibility) { [weak self] width in
             self?.setStatusItemLength(width)
         }
         let hostingView = PassthroughHostingView(rootView: rootView)
@@ -367,7 +374,12 @@ final class MenuBarController: NSObject {
 }
 
 extension MenuBarController: NSPopoverDelegate {
+    func popoverWillShow(_ notification: Notification) {
+        popoverVisibility.isShown = true
+    }
+
     func popoverDidClose(_ notification: Notification) {
+        popoverVisibility.isShown = false
         removeOutsideClickMonitors()
         perform(hoverInteraction.popoverClosedExternally())
     }

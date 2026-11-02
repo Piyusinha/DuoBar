@@ -7,6 +7,8 @@ struct KeepAwakeSection: View {
     /// Liquid Glass (macOS 26+) layout when true; the card layout otherwise.
     var controlCenterStyle = true
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             header
@@ -73,8 +75,7 @@ struct KeepAwakeSection: View {
 
     private func statusLine(for session: KeepAwakeSession) -> some View {
         HStack(spacing: 6) {
-            Image(systemName: KeepAwakeSymbol.active)
-                .font(.system(size: 10, weight: .semibold))
+            SteamingMugGlyph(height: 14, animates: !reduceMotion)
                 .foregroundStyle(Color.accentColor)
             if let endDate = session.endDate {
                 Text(localized("Awake until %@", endDate.formatted(date: .omitted, time: .shortened)))
